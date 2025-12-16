@@ -294,10 +294,12 @@
             setTimeout(() => {
                 const foundBadWord = RESTRICTED_KEYWORDS.find(word => query.includes(word));
                 if (foundBadWord) {
+                    // Tracking restricted word in background
+                    logSearch(queryRaw + " (Restricted)", true);
+
                     const grid = document.getElementById("results");
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
                     
-                    // --- 🆕 UPDATED MESSAGE SECTION START ---
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
@@ -312,11 +314,10 @@
                             Clear Search
                         </button>
                     </div>`;
-                    // --- 🆕 UPDATED MESSAGE SECTION END ---
 
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
-                    showToast("⚠️ Restricted content detected!");
+                    // Toast Removed Here
                     return;
                 }
                 
