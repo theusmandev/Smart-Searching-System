@@ -259,7 +259,7 @@
 
         const RESTRICTED_KEYWORDS = [
             "bold", "sexy", "sex", "18+", "adult", "dirty", 
-            "romance", "kiss", "hot", "ganda", "gandi", "galat"
+            "romance", "romantic", "kiss", "hot", "ganda", "gandi", "galat"
         ];
 
         let state = { novels: [], fuse: null, searchResults: [], currentPage: 1, favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), showFavorites: false };
@@ -295,13 +295,25 @@
                 const foundBadWord = RESTRICTED_KEYWORDS.find(word => query.includes(word));
                 if (foundBadWord) {
                     const grid = document.getElementById("results");
-                    document.getElementById("resultCount").textContent = "⚠️ Action Blocked";
+                    document.getElementById("resultCount").textContent = "🚫 Restricted";
+                    
+                    // --- 🆕 UPDATED MESSAGE SECTION START ---
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
-                        <h3 style="font-size: 1.8rem; margin-bottom: 10px; color: #b91c1c;">⚠️ Warning</h3>
-                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 15px;">"<strong>${queryRaw}</strong>" contains restricted keywords.</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 20px;">Clear Search</button>
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Search Restricted</h3>
+                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 8px;">
+                            We maintain a <strong>Clean & Family-Friendly</strong> environment.
+                        </p>
+                        <p style="color: #991b1b; font-size: 0.95rem;">
+                            Please search for decent Urdu novels only.
+                        </p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 25px;">
+                            Clear Search
+                        </button>
                     </div>`;
+                    // --- 🆕 UPDATED MESSAGE SECTION END ---
+
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
                     showToast("⚠️ Restricted content detected!");
