@@ -257,11 +257,10 @@
             perPage: 21
         };
 
-        const RESTRICTED_KEYWORDS = [
-            "bold", "sexy", "sex", "18+", "adult", "dirty", 
-            "romance", "romantic", "kiss", "hot", "ganda", "gandi", "galat"
+       const RESTRICTED_KEYWORDS = [
+            "bold", "sexy", "sex", "18+", "adult", "dirty"
+         , "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"
         ];
-
         let state = { novels: [], fuse: null, searchResults: [], currentPage: 1, favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), showFavorites: false };
 
         (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); })();
