@@ -258,8 +258,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-  
-      const CONFIG = {
+        const CONFIG = {
             supabaseUrl: "https://qcpjvngjwbulkkpdxouq.supabase.co",
             supabaseKey: "sb_publishable_dCy-rNGFvPGhzbfhLmhvyg_wKzxmeFF",
             googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
@@ -278,7 +277,6 @@
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
             showFavorites: false,
             lastLog: "",
-            // NAYA FEATURE: Har dafa load hone par ek naya random starting point
             randomOffset: Math.floor(Math.random() * 75000) 
         };
 
@@ -313,17 +311,13 @@
 
             let start = (state.currentPage - 1) * CONFIG.perPage;
             
-            // RANDOM LOGIC: Agar koi search nahi kar raha, to random offset add karein
             if (!query && !state.showFavorites) {
                 start += state.randomOffset;
             }
             
             const end = start + CONFIG.perPage - 1;
-
             let url = `${CONFIG.supabaseUrl}/rest/v1/novels?select=*`;
-            if (query) {
-                url += `&Titles=ilike.*${encodeURIComponent(query)}*`;
-            }
+            if (query) { url += `&Titles=ilike.*${encodeURIComponent(query)}*`; }
 
             try {
                 const response = await fetch(url, {
@@ -348,18 +342,18 @@
             }
         }
 
+        // UPDATE: Made this function async to wait for fetchData to finish
         function searchNovel() {
             const queryRaw = document.getElementById("searchBox").value.trim();
             const query = queryRaw.toLowerCase();
             
-            // --- UX: Hide Keyboard on Mobile ---
             document.getElementById("searchBox").blur();
             document.getElementById("suggestions").classList.remove("active");
 
             if(state.showFavorites) toggleFavorites();
             showSkeletonLoading();
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const grid = document.getElementById("results");
 
                 // --- 1. SAFETY CHECK (Restricted Words) ---
@@ -367,7 +361,6 @@
                 if (foundBadWord) {
                     logSearch(queryRaw + " (Restricted)", true);
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
-                    
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
@@ -386,17 +379,14 @@
                 if (urduPattern.test(queryRaw)) {
                     logSearch(queryRaw + " (Urdu Input)", true);
                     document.getElementById("resultCount").textContent = "🔤 English Required";
-
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eff6ff; border-radius: 12px; border: 1px solid #3b82f6;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #1d4ed8; font-weight: 700;">Please Search in English</h3>
-                        <br>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #1d4ed8; font-weight: 700;">Please Search in English</h3><br>
                         <p style="color: #1e40af; font-size: 1.1rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
                         <p style="color: #1e3a8a; font-size: 0.95rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
                         <button class="btn-go-back" onclick="clearSearch()" style="background: #2563eb;">Try Again</button>
                     </div>`;
-                    
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
                     return;
@@ -406,41 +396,34 @@
                 if (query !== "" && query !== "all" && query.replace(/\s/g, '').length < 3) {
                     logSearch(queryRaw + " (Too Short)", true);
                     document.getElementById("resultCount").textContent = "? Unclear Search";
-
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px; border: 1px solid #d97706;">
-                        <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div>
-                        <br>
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div><br>
                         <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b45309; font-weight: 700;">Search Too Short</h3>
-                        <p style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">
-                            We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".
-                        </p>
-                        <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 20px;">
-                            Please type at least <strong>3 characters</strong> (e.g., "Namal").
-                        </p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #d97706;">
-                            Try Again
-                        </button>
+                        <p style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".</p>
+                        <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 20px;">Please type at least <strong>3 characters</strong> (e.g., "Namal").</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #d97706;">Try Again</button>
                     </div>`;
-
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
                     return;
                 }
                 
-                // --- 4. NORMAL SEARCH (API Call) ---
-                if (query !== state.lastLog) {
-                    logSearch(query, false);
-                    state.lastLog = query;
-                }
-
-                // Agar 'all' ya khali search kare to naye random novels dikhayen
                 if (query === "" || query === "all") {
                     state.randomOffset = Math.floor(Math.random() * 75000);
                 }
                 
                 state.currentPage = 1; 
-                fetchData(query === "all" ? "" : query); 
+                
+                // UPDATE: wait for data to load so we know totalResults exactly
+                await fetchData(query === "all" ? "" : query); 
+                
+                // --- 4. NORMAL SEARCH (API Call Logging FIX) ---
+                if (query !== "" && query !== "all" && query !== state.lastLog) {
+                    // Yahan check hoga ke totalResults 0 hai ya nahi
+                    logSearch(queryRaw, state.totalResults === 0);
+                    state.lastLog = query;
+                }
                 
             }, 50);
         }
@@ -507,13 +490,22 @@
             if(window.scrollY > 300 && document.getElementById("novel-app-wrapper")) document.getElementById("novel-app-wrapper").scrollIntoView({behavior: 'smooth'});
         }
 
+        // UPDATE: Random recommendations from database
         async function showRecommendations() {
             const recSection = document.getElementById("recommendedSection");
             const recGrid = document.getElementById("recommendedGrid");
             recSection.style.display = "block"; recGrid.innerHTML = "";
             
             try {
-                const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*&limit=10`, { headers: { "apikey": CONFIG.supabaseKey } });
+                // Generate random number for suggestions
+                const randomRecOffset = Math.floor(Math.random() * 75000);
+                const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*`, { 
+                    headers: { 
+                        "apikey": CONFIG.supabaseKey,
+                        "Range-Unit": "items",
+                        "Range": `${randomRecOffset}-${randomRecOffset + 9}` // Get 10 random items
+                    } 
+                });
                 const recNovels = await res.json();
                 
                 recNovels.forEach(novel => {
@@ -626,7 +618,6 @@
             div.appendChild(createBtn(currentPage + 1, "Next", true, currentPage === totalPages));
         }
 
-        // CLEAR SEARCH PAR BHI NAYA RANDOM NUMBER GENERATE HOGA
         function clearSearch() { 
             document.getElementById("searchBox").value = ""; 
             state.showFavorites = false; 
@@ -634,7 +625,7 @@
             document.getElementById("favToggle").style.background = "white"; 
             document.getElementById("favToggle").style.color = "var(--secondary)"; 
             state.currentPage = 1; 
-            state.randomOffset = Math.floor(Math.random() * 75000); // Generate new random novels
+            state.randomOffset = Math.floor(Math.random() * 75000); 
             fetchData(); 
         }
 
@@ -662,6 +653,5 @@
             const params = new URLSearchParams({ search: q, timestamp: new Date().toISOString(), noResults: n, device: deviceType, userId: userId });
             fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
         }
-      
     </script>
 </div>
