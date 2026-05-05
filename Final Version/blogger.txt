@@ -258,7 +258,8 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        const CONFIG = {
+  
+      const CONFIG = {
             supabaseUrl: "https://qcpjvngjwbulkkpdxouq.supabase.co",
             supabaseKey: "sb_publishable_dCy-rNGFvPGhzbfhLmhvyg_wKzxmeFF",
             googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
@@ -276,7 +277,9 @@
             currentPage: 1, 
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
             showFavorites: false,
-            lastLog: "" 
+            lastLog: "",
+            // NAYA FEATURE: Har dafa load hone par ek naya random starting point
+            randomOffset: Math.floor(Math.random() * 75000) 
         };
 
         (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); })();
@@ -308,7 +311,13 @@
             if (!navigator.onLine) { document.getElementById("results").innerHTML = "<p style='text-align:center'>Please check your internet.</p>"; return; }
             showSkeletonLoading();
 
-            const start = (state.currentPage - 1) * CONFIG.perPage;
+            let start = (state.currentPage - 1) * CONFIG.perPage;
+            
+            // RANDOM LOGIC: Agar koi search nahi kar raha, to random offset add karein
+            if (!query && !state.showFavorites) {
+                start += state.randomOffset;
+            }
+            
             const end = start + CONFIG.perPage - 1;
 
             let url = `${CONFIG.supabaseUrl}/rest/v1/novels?select=*`;
@@ -424,6 +433,11 @@
                     logSearch(query, false);
                     state.lastLog = query;
                 }
+
+                // Agar 'all' ya khali search kare to naye random novels dikhayen
+                if (query === "" || query === "all") {
+                    state.randomOffset = Math.floor(Math.random() * 75000);
+                }
                 
                 state.currentPage = 1; 
                 fetchData(query === "all" ? "" : query); 
@@ -454,7 +468,6 @@
                 return;
             }
 
-            // Slice only for favorites since API already gives sliced data
             const dataToRender = state.showFavorites 
                 ? state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage) 
                 : state.searchResults;
@@ -467,7 +480,6 @@
                 
                 let safeTitle = escapeHTML(novel.Titles);
                 
-                // --- FIX 2: Highlight Search Term ---
                 if (searchQuery && searchQuery.length >= 3 && !state.showFavorites) {
                     try {
                         const safeQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -501,7 +513,6 @@
             recSection.style.display = "block"; recGrid.innerHTML = "";
             
             try {
-                // Fetch 10 random-ish novels from DB for recommendation
                 const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*&limit=10`, { headers: { "apikey": CONFIG.supabaseKey } });
                 const recNovels = await res.json();
                 
@@ -615,8 +626,18 @@
             div.appendChild(createBtn(currentPage + 1, "Next", true, currentPage === totalPages));
         }
 
-        function clearSearch() { document.getElementById("searchBox").value = ""; state.showFavorites = false; document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; document.getElementById("favToggle").style.background = "white"; document.getElementById("favToggle").style.color = "var(--secondary)"; state.currentPage = 1; fetchData(); }
-        function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+        // CLEAR SEARCH PAR BHI NAYA RANDOM NUMBER GENERATE HOGA
+        function clearSearch() { 
+            document.getElementById("searchBox").value = ""; 
+            state.showFavorites = false; 
+            document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; 
+            document.getElementById("favToggle").style.background = "white"; 
+            document.getElementById("favToggle").style.color = "var(--secondary)"; 
+            state.currentPage = 1; 
+            state.randomOffset = Math.floor(Math.random() * 75000); // Generate new random novels
+            fetchData(); 
+        }
+
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
         
         function startVoiceSearch() {
@@ -641,5 +662,6 @@
             const params = new URLSearchParams({ search: q, timestamp: new Date().toISOString(), noResults: n, device: deviceType, userId: userId });
             fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
         }
+      
     </script>
 </div>
