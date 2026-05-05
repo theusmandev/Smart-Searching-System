@@ -1,7 +1,7 @@
 <div id="novel-app-wrapper">
 
     <style>
-        /* --- CORE VARIABLES &-- */
+        /* --- CORE VARIABLES & RESET --- */
         #novel-app-wrapper {
             --primary: #4f46e5;
             --primary-dark: #db2777;
@@ -146,8 +146,9 @@
             margin-top: 0;
         }
         
+        /* --- HIGHLIGHT STYLE (New) --- */
         mark.highlight {
-            background-color: #fde047;
+            background-color: #fde047; /* Yellow */
             color: #111827;
             padding: 0 2px;
             border-radius: 4px;
@@ -184,6 +185,8 @@
         .page-btn.nav-btn:hover:not(:disabled) { background: var(--primary); color: white; }
         .page-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #e5e7eb !important; color: var(--text-sub) !important; background: white !important; box-shadow: none; }
 
+        .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; font-size: 1.5rem; color: var(--text-sub); padding-bottom: 8px; }
+
         /* --- MISC --- */
         .fav-section-btn { display: block; margin: 0; background: white; border: 2px solid var(--secondary); color: var(--secondary); padding: 8px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
         .fav-section-btn:hover { background: var(--secondary); color: white; }
@@ -193,13 +196,21 @@
             font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-go-back:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(219, 39, 119, 0.4); }
 
         .skeleton { background: #e5e7eb; border-radius: 6px; animation: shimmer 1.5s infinite linear; }
         .skeleton-text { height: 20px; width: 80%; margin-bottom: 10px; }
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
         @keyframes shimmer { 0% { background: #e5e7eb; } 50% { background: #f3f4f6; } 100% { background: #e5e7eb; } }
 
-        .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
+        .toast-container { 
+            position: fixed; 
+            bottom: 80px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 9999; 
+            pointer-events: none; 
+        }
         .toast { background: #1f2937; color: white; padding: 12px 24px; border-radius: 50px; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg); font-size: 0.9rem; }
         .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap;}
         
@@ -235,10 +246,12 @@
         </div>
 
         <div class="grid-container" id="results"></div>
+        
         <div id="recommendedSection" style="display: none; margin-top: 30px;">
             <h3 style="margin-bottom: 30px; text-align: center;">You Might Like</h3>
             <div class="grid-container" id="recommendedGrid"></div>
         </div>
+
         <div class="pagination" id="pagination"></div>
     </div>
 
@@ -252,21 +265,35 @@
             perPage: 21
         };
 
-        const RESTRICTED_KEYWORDS = ["bold", "sexy", "sex", "18+", "adult", "dirty", "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"];
+        const RESTRICTED_KEYWORDS = [
+            "bold", "sexy", "sex", "18+", "adult", "dirty",
+            "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"
+        ];
 
         let state = { 
             searchResults: [], 
             totalResults: 0,
             currentPage: 1, 
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
-            showFavorites: false 
+            showFavorites: false,
+            lastLog: "" 
         };
 
-        (function init() { fetchData(); setupEventListeners(); })();
+        (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); })();
 
+        // --- SECURITY FUNCTION ---
         function escapeHTML(str) {
             if (!str) return "";
-            return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+            return str.replace(/[&<>"']/g, function(m) {
+                switch (m) {
+                    case '&': return '&amp;';
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '"': return '&quot;';
+                    case "'": return '&#039;';
+                    default: return m;
+                }
+            });
         }
 
         function setupEventListeners() {
@@ -276,8 +303,11 @@
             document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
         }
 
+        // --- FETCH DATA FROM SUPABASE ---
         async function fetchData(query = "") {
+            if (!navigator.onLine) { document.getElementById("results").innerHTML = "<p style='text-align:center'>Please check your internet.</p>"; return; }
             showSkeletonLoading();
+
             const start = (state.currentPage - 1) * CONFIG.perPage;
             const end = start + CONFIG.perPage - 1;
 
@@ -301,33 +331,112 @@
                 const contentRange = response.headers.get("content-range");
                 state.totalResults = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
                 state.searchResults = data;
+                
                 renderResults();
             } catch (err) {
                 console.error(err);
-                document.getElementById("results").innerHTML = "<p style='text-align:center'>Connection Error. Please check your internet.</p>";
+                document.getElementById("results").innerHTML = "<p style='text-align:center'>Database Connection Error.</p>";
             }
         }
 
         function searchNovel() {
             const queryRaw = document.getElementById("searchBox").value.trim();
             const query = queryRaw.toLowerCase();
+            
+            // --- UX: Hide Keyboard on Mobile ---
             document.getElementById("searchBox").blur();
             document.getElementById("suggestions").classList.remove("active");
 
-            if (RESTRICTED_KEYWORDS.find(word => query.includes(word))) {
-                showSecurityUI("restricted"); return;
-            }
-            if (/[\u0600-\u06FF]/.test(queryRaw)) {
-                showSecurityUI("urdu"); return;
-            }
-            if (query !== "" && query.replace(/\s/g, '').length < 3) {
-                showSecurityUI("short"); return;
-            }
+            if(state.showFavorites) toggleFavorites();
+            showSkeletonLoading();
 
-            state.currentPage = 1;
-            state.showFavorites = false;
-            fetchData(queryRaw);
-            logSearch(queryRaw, false);
+            setTimeout(() => {
+                const grid = document.getElementById("results");
+
+                // --- 1. SAFETY CHECK (Restricted Words) ---
+                const foundBadWord = RESTRICTED_KEYWORDS.find(word => query.includes(word));
+                if (foundBadWord) {
+                    logSearch(queryRaw + " (Restricted)", true);
+                    document.getElementById("resultCount").textContent = "🚫 Restricted";
+                    
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Search Restricted</h3><br>
+                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
+                        <p style="color: #991b1b; font-size: 0.95rem;">Please search for decent Urdu novels only.</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 25px;">Clear Search</button>
+                    </div>`;
+                    document.getElementById("pagination").innerHTML = "";
+                    document.getElementById("recommendedSection").style.display = "none";
+                    return;
+                }
+
+                // --- 2. URDU LANGUAGE CHECK ---
+                const urduPattern = /[\u0600-\u06FF\u0750-\u077F]/;
+                if (urduPattern.test(queryRaw)) {
+                    logSearch(queryRaw + " (Urdu Input)", true);
+                    document.getElementById("resultCount").textContent = "🔤 English Required";
+
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eff6ff; border-radius: 12px; border: 1px solid #3b82f6;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #1d4ed8; font-weight: 700;">Please Search in English</h3>
+                        <br>
+                        <p style="color: #1e40af; font-size: 1.1rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
+                        <p style="color: #1e3a8a; font-size: 0.95rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #2563eb;">Try Again</button>
+                    </div>`;
+                    
+                    document.getElementById("pagination").innerHTML = "";
+                    document.getElementById("recommendedSection").style.display = "none";
+                    return;
+                }
+
+                // --- 3. JUNK / SHORT SEARCH CHECK ---
+                if (query !== "" && query !== "all" && query.replace(/\s/g, '').length < 3) {
+                    logSearch(queryRaw + " (Too Short)", true);
+                    document.getElementById("resultCount").textContent = "? Unclear Search";
+
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px; border: 1px solid #d97706;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div>
+                        <br>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b45309; font-weight: 700;">Search Too Short</h3>
+                        <p style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">
+                            We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".
+                        </p>
+                        <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 20px;">
+                            Please type at least <strong>3 characters</strong> (e.g., "Namal").
+                        </p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #d97706;">
+                            Try Again
+                        </button>
+                    </div>`;
+
+                    document.getElementById("pagination").innerHTML = "";
+                    document.getElementById("recommendedSection").style.display = "none";
+                    return;
+                }
+                
+                // --- 4. NORMAL SEARCH (API Call) ---
+                if (query !== state.lastLog) {
+                    logSearch(query, false);
+                    state.lastLog = query;
+                }
+                
+                state.currentPage = 1; 
+                fetchData(query === "all" ? "" : query); 
+                
+            }, 50);
+        }
+
+        function showSkeletonLoading() {
+            const grid = document.getElementById("results");
+            grid.innerHTML = "";
+            for(let i=0; i<6; i++) {
+                grid.innerHTML += `<div class="novel-card"><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width: 60%"></div><div class="skeleton skeleton-btn"></div></div>`;
+            }
         }
 
         function renderResults() {
@@ -335,94 +444,101 @@
             document.getElementById("recommendedSection").style.display = "none";
             grid.innerHTML = "";
             
-            const dataToRender = state.showFavorites ? state.favorites : state.searchResults;
             const total = state.showFavorites ? state.favorites.length : state.totalResults;
-            
             document.getElementById("resultCount").textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
             if (total === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3><button class="btn-go-back" onclick="clearSearch()">⬅ Go Back to Library</button></div>`;
-                document.getElementById("pagination").innerHTML = ""; return;
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;"><h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3><p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p><button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button></div>`;
+                showRecommendations(); 
+                document.getElementById("pagination").innerHTML = ""; 
+                return;
             }
 
+            // Slice only for favorites since API already gives sliced data
+            const dataToRender = state.showFavorites 
+                ? state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage) 
+                : state.searchResults;
+            
             const searchQuery = document.getElementById("searchBox").value.trim();
 
             dataToRender.forEach(novel => {
                 const isFav = state.favorites.some(f => f.Titles === novel.Titles);
+                const heartIcon = isFav ? '\u2764\ufe0f' : '\uD83E\uDD0D'; 
+                
                 let safeTitle = escapeHTML(novel.Titles);
                 
+                // --- FIX 2: Highlight Search Term ---
                 if (searchQuery && searchQuery.length >= 3 && !state.showFavorites) {
-                    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    safeTitle = safeTitle.replace(regex, '<mark class="highlight">$1</mark>');
+                    try {
+                        const safeQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${safeQuery})`, 'gi');
+                        safeTitle = safeTitle.replace(regex, '<mark class="highlight">$1</mark>');
+                    } catch(e) { }
                 }
 
                 const jsSafeTitle = novel.Titles.replace(/'/g, "\\'"); 
-                const safeLink = novel.Links || '#';
+                let safeLink = (novel.Links && /^https?:\/\//i.test(novel.Links)) ? novel.Links : '#';
+                const jsSafeLink = safeLink.replace(/'/g, "\\'");
 
                 grid.innerHTML += `
                 <article class="novel-card">
                     <h2 class="novel-title" title="${escapeHTML(novel.Titles)}">${safeTitle}</h2>
                     <div class="card-actions">
-                        <button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${jsSafeTitle}', '${safeLink}', this)">${isFav ? '❤️' : '🤍'}</button>
-                        <button class="btn btn-secondary" onclick="shareNovel('${jsSafeTitle}', '${safeLink}')">🔗</button>
+                        <button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${jsSafeTitle}', '${jsSafeLink}', this)">${heartIcon}</button>
+                        <button class="btn btn-secondary" onclick="shareNovel('${jsSafeTitle}', '${jsSafeLink}')">🔗</button>
                         <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
                     </div>
                 </article>`;
             });
 
-            if (!state.showFavorites) renderPagination(Math.ceil(total / CONFIG.perPage));
+            renderPagination(Math.ceil(total / CONFIG.perPage));
+            if(window.scrollY > 300 && document.getElementById("novel-app-wrapper")) document.getElementById("novel-app-wrapper").scrollIntoView({behavior: 'smooth'});
         }
 
-        function renderPagination(totalPages) {
-            const div = document.getElementById("pagination");
-            div.innerHTML = "";
-            if (totalPages <= 1) return;
-
-            const createBtn = (page, text, isNav = false, isDisabled = false) => {
-                const btn = document.createElement("button");
-                btn.className = `page-btn ${isNav ? 'nav-btn' : ''} ${page === state.currentPage && !isNav ? 'active' : ''}`;
-                btn.textContent = text || page;
-                btn.disabled = isDisabled;
-                btn.onclick = () => { state.currentPage = page; fetchData(document.getElementById("searchBox").value.trim()); window.scrollTo({top: 0, behavior: 'smooth'}); };
-                return btn;
-            };
-
-            div.appendChild(createBtn(state.currentPage - 1, "Prev", true, state.currentPage === 1));
+        async function showRecommendations() {
+            const recSection = document.getElementById("recommendedSection");
+            const recGrid = document.getElementById("recommendedGrid");
+            recSection.style.display = "block"; recGrid.innerHTML = "";
             
-            // Simple logic for current page info
-            const span = document.createElement("span");
-            span.textContent = `Page ${state.currentPage} of ${totalPages}`;
-            span.style.margin = "0 10px";
-            div.appendChild(span);
+            try {
+                // Fetch 10 random-ish novels from DB for recommendation
+                const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*&limit=10`, { headers: { "apikey": CONFIG.supabaseKey } });
+                const recNovels = await res.json();
+                
+                recNovels.forEach(novel => {
+                    const safeTitle = escapeHTML(novel.Titles);
+                    let safeLink = (novel.Links && /^https?:\/\//i.test(novel.Links)) ? novel.Links : '#';
 
-            div.appendChild(createBtn(state.currentPage + 1, "Next", true, state.currentPage === totalPages));
-        }
-
-        function showSecurityUI(type) {
-            const grid = document.getElementById("results");
-            const configs = {
-                restricted: { bg: '#fee2e2', border: '#ef4444', icon: '🛡️', title: 'Search Restricted', p: 'Search for decent Urdu novels only.' },
-                urdu: { bg: '#eff6ff', border: '#3b82f6', icon: '⌨️', title: 'Use English / Roman Urdu', p: 'Example: Type "Jannat" instead of "جنت"' },
-                short: { bg: '#fef3c7', border: '#d97706', icon: '🤔', title: 'Search Too Short', p: 'Type at least 3 characters.' }
-            };
-            const c = configs[type];
-            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: ${c.bg}; border-radius: 12px; border: 1px solid ${c.border};">
-                <div style="font-size: 3rem;">${c.icon}</div><h3>${c.title}</h3><p>${c.p}</p>
-                <button class="btn-go-back" onclick="clearSearch()">Try Again</button>
-            </div>`;
-            document.getElementById("pagination").innerHTML = "";
+                    recGrid.innerHTML += `
+                    <div class="novel-card" style="opacity: 0.9">
+                        <h2 class="novel-title" title="${safeTitle}">${safeTitle}</h2>
+                        <div class="card-actions">
+                            <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
+                        </div>
+                    </div>`;
+                });
+            } catch(e) { console.error(e) }
         }
 
         async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
-            if (!query || query.length < 2) { box.classList.remove("active"); return; }
+            if (!query) { box.classList.remove("active"); return; }
+            const isRestricted = RESTRICTED_KEYWORDS.some(word => query.toLowerCase().includes(word));
+            if (isRestricted) { box.classList.remove("active"); return; }
             
-            const url = `${CONFIG.supabaseUrl}/rest/v1/novels?Titles=ilike.*${encodeURIComponent(query)}*&select=Titles&limit=5`;
             try {
-                const res = await fetch(url, { headers: {"apikey": CONFIG.supabaseKey, "Authorization": `Bearer ${CONFIG.supabaseKey}`} });
-                const data = await res.json();
-                if (data.length === 0) { box.classList.remove("active"); return; }
-                box.innerHTML = data.map(item => `<div class="suggestion-item" onclick="selectSuggestion('${item.Titles.replace(/'/g, "\\'")}')">${escapeHTML(item.Titles)}</div>`).join("");
+                const url = `${CONFIG.supabaseUrl}/rest/v1/novels?Titles=ilike.*${encodeURIComponent(query)}*&select=Titles&limit=5`;
+                const res = await fetch(url, { headers: { "apikey": CONFIG.supabaseKey, "Authorization": `Bearer ${CONFIG.supabaseKey}` } });
+                const results = await res.json();
+                
+                if (results.length === 0) { box.classList.remove("active"); return; }
+                
+                box.innerHTML = results.map(r => {
+                    const safeTitle = escapeHTML(r.Titles);
+                    const jsSafeTitle = r.Titles.replace(/'/g, "\\'"); 
+                    return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">${safeTitle}</div>`;
+                }).join("");
+                
                 box.classList.add("active");
             } catch(e) {}
         }
@@ -431,44 +547,99 @@
 
         function toggleFav(title, link, btn) {
             const idx = state.favorites.findIndex(f => f.Titles === title);
-            if (idx === -1) { state.favorites.push({ Titles: title, Links: link }); btn.classList.add("active"); btn.textContent = "❤️"; showToast("Saved"); } 
-            else { state.favorites.splice(idx, 1); btn.classList.remove("active"); btn.textContent = "🤍"; showToast("Removed"); }
+            if (idx === -1) { state.favorites.push({ Titles: title, Links: link }); btn.classList.add("active"); btn.textContent = "\u2764\ufe0f"; showToast("Saved to favorites"); } 
+            else { state.favorites.splice(idx, 1); btn.classList.remove("active"); btn.textContent = "\uD83E\uDD0D"; showToast("Removed from favorites"); if(state.showFavorites) { renderResults(); } }
             localStorage.setItem("favorites", JSON.stringify(state.favorites));
-            if(state.showFavorites) renderResults();
         }
 
         function toggleFavorites() {
             state.showFavorites = !state.showFavorites;
             const btn = document.getElementById("favToggle");
-            btn.textContent = state.showFavorites ? "Show All Library" : "Show Favorites";
             state.currentPage = 1;
-            state.showFavorites ? renderResults() : fetchData();
-        }
-
-        function showSkeletonLoading() {
-            const grid = document.getElementById("results");
-            grid.innerHTML = Array(6).fill(`<div class="novel-card"><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width: 60%"></div><div class="skeleton skeleton-btn"></div></div>`).join("");
+            if (state.showFavorites) { 
+                btn.textContent = "👉 Show All Novels"; 
+                btn.style.background = "var(--secondary)"; 
+                btn.style.color = "white"; 
+                renderResults();
+            } 
+            else { 
+                btn.textContent = "Show Favorites \u2764\ufe0f"; 
+                btn.style.background = "white"; 
+                btn.style.color = "var(--secondary)"; 
+                fetchData(document.getElementById("searchBox").value.trim());
+            }
         }
 
         function showToast(msg) {
             const container = document.getElementById("toastContainer");
             const toast = document.createElement("div"); toast.className = "toast"; toast.textContent = msg; container.appendChild(toast);
             setTimeout(() => toast.classList.add("show"), 10);
-            setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 2000);
+            setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        function clearSearch() { document.getElementById("searchBox").value = ""; state.currentPage = 1; fetchData(); }
-        function debounce(f, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), w); }; }
-        function shareNovel(t, l) { if (navigator.share) navigator.share({ title: t, url: l }); else { navigator.clipboard.writeText(l); showToast("Link copied!"); } }
+        function shareNovel(title, link) {
+            if (navigator.share) navigator.share({ title: title, text: `Read ${title}`, url: link });
+            else { navigator.clipboard.writeText(link); showToast("Link copied!"); }
+        }
+
+        function renderPagination(totalPages) {
+            const div = document.getElementById("pagination");
+            div.innerHTML = "";
+            if (totalPages <= 1) return;
+            const { currentPage } = state;
+            const createBtn = (page, text, isNav = false, isDisabled = false) => {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${isNav ? 'nav-btn' : ''} ${page === currentPage && !isNav ? 'active' : ''}`;
+                btn.textContent = text || page;
+                btn.disabled = isDisabled;
+                if (!isDisabled) { 
+                    btn.onclick = () => { 
+                        state.currentPage = page; 
+                        if (state.showFavorites) { renderResults(); } 
+                        else { fetchData(document.getElementById("searchBox").value.trim()); }
+                        document.getElementById("novel-app-wrapper").scrollIntoView({ behavior: 'smooth' }); 
+                    }; 
+                }
+                return btn;
+            };
+            const createEllipsis = () => { const span = document.createElement("span"); span.className = "pagination-ellipsis"; span.innerHTML = "&hellip;"; return span; };
+
+            div.appendChild(createBtn(currentPage - 1, "Prev", true, currentPage === 1));
+            const pages = []; pages.push(1);
+            let start = Math.max(2, currentPage - 1); let end = Math.min(totalPages - 1, currentPage + 1);
+            if (start > 2) pages.push('...');
+            for (let i = start; i <= end; i++) { if (i > 1 && i < totalPages) pages.push(i); }
+            if (end < totalPages - 1) pages.push('...');
+            if (totalPages > 1) pages.push(totalPages);
+            pages.forEach(page => { if (page === '...') div.appendChild(createEllipsis()); else div.appendChild(createBtn(page)); });
+            div.appendChild(createBtn(currentPage + 1, "Next", true, currentPage === totalPages));
+        }
+
+        function clearSearch() { document.getElementById("searchBox").value = ""; state.showFavorites = false; document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; document.getElementById("favToggle").style.background = "white"; document.getElementById("favToggle").style.color = "var(--secondary)"; state.currentPage = 1; fetchData(); }
+        function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+        function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
+        
         function startVoiceSearch() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) { showToast("Not supported"); return; }
+            if (!SR) { showToast("Voice search not supported"); return; }
             const r = new SR();
             r.onstart = () => { document.getElementById("searchBox").placeholder = "Listening..."; document.querySelector(".mic").classList.add("listening"); };
-            r.onend = () => { document.getElementById("searchBox").placeholder = "Search..."; document.querySelector(".mic").classList.remove("listening"); };
-            r.onresult = (e) => { document.getElementById("searchBox").value = e.results[0][0].transcript; searchNovel(); };
+            r.onend = () => { document.getElementById("searchBox").placeholder = "Search novel title..."; document.querySelector(".mic").classList.remove("listening"); };
+            r.onresult = (e) => { const transcript = e.results[0][0].transcript; document.getElementById("searchBox").value = transcript; searchNovel(); };
             r.start();
         }
-        function logSearch(q, n) { fetch(CONFIG.googleScript, { method: 'POST', body: new URLSearchParams({ search: q, noResults: n }) }).catch(e => {}); }
+
+        function getUserId() {
+            let id = localStorage.getItem("nb_user_id");
+            if (!id) { id = 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5); localStorage.setItem("nb_user_id", id); }
+            return id;
+        }
+
+        function logSearch(q, n) { 
+            const userId = getUserId();
+            const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+            const params = new URLSearchParams({ search: q, timestamp: new Date().toISOString(), noResults: n, device: deviceType, userId: userId });
+            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
+        }
     </script>
 </div>
