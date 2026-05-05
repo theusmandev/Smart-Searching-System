@@ -8,6 +8,8 @@
 <body>
     <div id="novel-app-wrapper">
 
+  <div id="novel-app-wrapper">
+
     <style>
         /* --- CORE VARIABLES & RESET --- */
         #novel-app-wrapper {
@@ -22,7 +24,7 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --radius: 12px;
             
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             display: flex;
@@ -153,6 +155,15 @@
             overflow: hidden;
             margin-top: 0;
         }
+        
+        /* --- HIGHLIGHT STYLE (New) --- */
+        mark.highlight {
+            background-color: #fde047; /* Yellow */
+            color: #111827;
+            padding: 0 2px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
 
         .card-actions { display: flex; align-items: center; gap: 10px; margin-top: auto; width: 100%; }
         .btn { border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -202,10 +213,17 @@
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
         @keyframes shimmer { 0% { background: #e5e7eb; } 50% { background: #f3f4f6; } 100% { background: #e5e7eb; } }
 
-        .toast-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
+        .toast-container { 
+            position: fixed; 
+            bottom: 80px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 9999; 
+            pointer-events: none; 
+        }
         .toast { background: #1f2937; color: white; padding: 12px 24px; border-radius: 50px; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg); font-size: 0.9rem; }
-        .toast.show { opacity: 1; transform: translateY(0); }
-      
+        .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap;}
+        
         @media (max-width: 600px) {
             .search-box-wrapper { padding: 3px 3px 3px 10px; gap: 2px; }
             #searchBox { padding: 6px 0px; height: 40px; font-size: 14px; }
@@ -223,7 +241,7 @@
 
     <div class="search-container">
         <div class="search-box-wrapper">
-            <input aria-label="Search" id="searchBox" type="text" />
+            <input aria-label="Search" id="searchBox" type="text" placeholder="Search novel title..." maxlength="80"/>
             <button aria-label="Voice Search" class="action-icon mic" onclick="startVoiceSearch()">🎙️</button>
             <button aria-label="Clear Search" class="action-icon" onclick="clearSearch()">✕</button>
             <button aria-label="Submit Search" class="action-icon search-submit" onclick="searchNovel()">Search</button>
@@ -249,21 +267,44 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
     <script>
         const CONFIG = {
-            jsonUrl: "https://cdn.jsdelivr.net/gh/theusmandev/SUNB@main/smart_urdu_novel_bank.json",
+            supabaseUrl: "https://qcpjvngjwbulkkpdxouq.supabase.co",
+            supabaseKey: "sb_publishable_dCy-rNGFvPGhzbfhLmhvyg_wKzxmeFF",
             googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
             perPage: 21
         };
 
-       const RESTRICTED_KEYWORDS = [
-            "bold", "sexy", "sex", "18+", "adult", "dirty"
-         , "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"
+        const RESTRICTED_KEYWORDS = [
+            "bold", "sexy", "sex", "18+", "adult", "dirty",
+            "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"
         ];
-        let state = { novels: [], fuse: null, searchResults: [], currentPage: 1, favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), showFavorites: false };
+
+        let state = { 
+            searchResults: [], 
+            totalResults: 0,
+            currentPage: 1, 
+            favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
+            showFavorites: false,
+            lastLog: "" 
+        };
 
         (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); })();
+
+        // --- SECURITY FUNCTION ---
+        function escapeHTML(str) {
+            if (!str) return "";
+            return str.replace(/[&<>"']/g, function(m) {
+                switch (m) {
+                    case '&': return '&amp;';
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '"': return '&quot;';
+                    case "'": return '&#039;';
+                    default: return m;
+                }
+            });
+        }
 
         function setupEventListeners() {
             const searchBox = document.getElementById("searchBox");
@@ -272,58 +313,132 @@
             document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
         }
 
-        function fetchData() {
+        // --- FETCH DATA FROM SUPABASE ---
+        async function fetchData(query = "") {
             if (!navigator.onLine) { document.getElementById("results").innerHTML = "<p style='text-align:center'>Please check your internet.</p>"; return; }
-            fetch(CONFIG.jsonUrl).then(res => res.json()).then(data => {
-                state.novels = data;
-                state.fuse = new Fuse(state.novels, { keys: ['Titles'], threshold: 0.3 });
-                displayRandomNovels();
-            }).catch(err => console.error(err));
-        }
+            showSkeletonLoading();
 
-        function displayRandomNovels() { state.searchResults = shuffleArray([...state.novels]); state.currentPage = 1; renderResults(); }
+            const start = (state.currentPage - 1) * CONFIG.perPage;
+            const end = start + CONFIG.perPage - 1;
+
+            let url = `${CONFIG.supabaseUrl}/rest/v1/novels?select=*`;
+            if (query) {
+                url += `&Titles=ilike.*${encodeURIComponent(query)}*`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        "apikey": CONFIG.supabaseKey,
+                        "Authorization": `Bearer ${CONFIG.supabaseKey}`,
+                        "Range-Unit": "items",
+                        "Range": `${start}-${end}`,
+                        "Prefer": "count=exact"
+                    }
+                });
+
+                const data = await response.json();
+                const contentRange = response.headers.get("content-range");
+                state.totalResults = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+                state.searchResults = data;
+                
+                renderResults();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("results").innerHTML = "<p style='text-align:center'>Database Connection Error.</p>";
+            }
+        }
 
         function searchNovel() {
             const queryRaw = document.getElementById("searchBox").value.trim();
             const query = queryRaw.toLowerCase();
+            
+            // --- UX: Hide Keyboard on Mobile ---
+            document.getElementById("searchBox").blur();
             document.getElementById("suggestions").classList.remove("active");
+
             if(state.showFavorites) toggleFavorites();
             showSkeletonLoading();
 
             setTimeout(() => {
+                const grid = document.getElementById("results");
+
+                // --- 1. SAFETY CHECK (Restricted Words) ---
                 const foundBadWord = RESTRICTED_KEYWORDS.find(word => query.includes(word));
                 if (foundBadWord) {
-                    // Tracking restricted word in background
                     logSearch(queryRaw + " (Restricted)", true);
-
-                    const grid = document.getElementById("results");
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
                     
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Search Restricted</h3>
-                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 8px;">
-                            We maintain a <strong>Clean & Family-Friendly</strong> environment.
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Search Restricted</h3><br>
+                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
+                        <p style="color: #991b1b; font-size: 0.95rem;">Please search for decent Urdu novels only.</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 25px;">Clear Search</button>
+                    </div>`;
+                    document.getElementById("pagination").innerHTML = "";
+                    document.getElementById("recommendedSection").style.display = "none";
+                    return;
+                }
+
+                // --- 2. URDU LANGUAGE CHECK ---
+                const urduPattern = /[\u0600-\u06FF\u0750-\u077F]/;
+                if (urduPattern.test(queryRaw)) {
+                    logSearch(queryRaw + " (Urdu Input)", true);
+                    document.getElementById("resultCount").textContent = "🔤 English Required";
+
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eff6ff; border-radius: 12px; border: 1px solid #3b82f6;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #1d4ed8; font-weight: 700;">Please Search in English</h3>
+                        <br>
+                        <p style="color: #1e40af; font-size: 1.1rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
+                        <p style="color: #1e3a8a; font-size: 0.95rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #2563eb;">Try Again</button>
+                    </div>`;
+                    
+                    document.getElementById("pagination").innerHTML = "";
+                    document.getElementById("recommendedSection").style.display = "none";
+                    return;
+                }
+
+                // --- 3. JUNK / SHORT SEARCH CHECK ---
+                if (query !== "" && query !== "all" && query.replace(/\s/g, '').length < 3) {
+                    logSearch(queryRaw + " (Too Short)", true);
+                    document.getElementById("resultCount").textContent = "? Unclear Search";
+
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px; border: 1px solid #d97706;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div>
+                        <br>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b45309; font-weight: 700;">Search Too Short</h3>
+                        <p style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">
+                            We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".
                         </p>
-                        <p style="color: #991b1b; font-size: 0.95rem;">
-                            Please search for decent Urdu novels only.
+                        <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 20px;">
+                            Please type at least <strong>3 characters</strong> (e.g., "Namal").
                         </p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 25px;">
-                            Clear Search
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #d97706;">
+                            Try Again
                         </button>
                     </div>`;
 
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
-                    // Toast Removed Here
                     return;
                 }
                 
-                if (!query || query === "all") { state.searchResults = shuffleArray([...state.novels]); } 
-                else { state.searchResults = state.fuse.search(query).map(r => r.item); logSearch(query, state.searchResults.length === 0); }
-                state.currentPage = 1; renderResults(); 
-            }, 300);
+                // --- 4. NORMAL SEARCH (API Call) ---
+                if (query !== state.lastLog) {
+                    logSearch(query, false);
+                    state.lastLog = query;
+                }
+                
+                state.currentPage = 1; 
+                fetchData(query === "all" ? "" : query); 
+                
+            }, 50);
         }
 
         function showSkeletonLoading() {
@@ -338,45 +453,104 @@
             const grid = document.getElementById("results");
             document.getElementById("recommendedSection").style.display = "none";
             grid.innerHTML = "";
-            const total = state.searchResults.length;
+            
+            const total = state.showFavorites ? state.favorites.length : state.totalResults;
             document.getElementById("resultCount").textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
             if (total === 0) {
                 grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;"><h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3><p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p><button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button></div>`;
-                showRecommendations(); document.getElementById("pagination").innerHTML = ""; return;
+                showRecommendations(); 
+                document.getElementById("pagination").innerHTML = ""; 
+                return;
             }
 
-            const start = (state.currentPage - 1) * CONFIG.perPage;
-            const pageData = state.searchResults.slice(start, start + CONFIG.perPage);
+            // Slice only for favorites since API already gives sliced data
+            const dataToRender = state.showFavorites 
+                ? state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage) 
+                : state.searchResults;
+            
+            const searchQuery = document.getElementById("searchBox").value.trim();
 
-            pageData.forEach(novel => {
+            dataToRender.forEach(novel => {
                 const isFav = state.favorites.some(f => f.Titles === novel.Titles);
                 const heartIcon = isFav ? '\u2764\ufe0f' : '\uD83E\uDD0D'; 
-                grid.innerHTML += `<article class="novel-card"><h2 class="novel-title" title="${novel.Titles}">${novel.Titles}</h2><div class="card-actions"><button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${novel.Titles}', '${novel.Links}', this)">${heartIcon}</button><button class="btn btn-secondary" onclick="shareNovel('${novel.Titles}', '${novel.Links}')">🔗</button><a href="${novel.Links}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a></div></article>`;
+                
+                let safeTitle = escapeHTML(novel.Titles);
+                
+                // --- FIX 2: Highlight Search Term ---
+                if (searchQuery && searchQuery.length >= 3 && !state.showFavorites) {
+                    try {
+                        const safeQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${safeQuery})`, 'gi');
+                        safeTitle = safeTitle.replace(regex, '<mark class="highlight">$1</mark>');
+                    } catch(e) { }
+                }
+
+                const jsSafeTitle = novel.Titles.replace(/'/g, "\\'"); 
+                let safeLink = (novel.Links && /^https?:\/\//i.test(novel.Links)) ? novel.Links : '#';
+                const jsSafeLink = safeLink.replace(/'/g, "\\'");
+
+                grid.innerHTML += `
+                <article class="novel-card">
+                    <h2 class="novel-title" title="${escapeHTML(novel.Titles)}">${safeTitle}</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${jsSafeTitle}', '${jsSafeLink}', this)">${heartIcon}</button>
+                        <button class="btn btn-secondary" onclick="shareNovel('${jsSafeTitle}', '${jsSafeLink}')">🔗</button>
+                        <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
+                    </div>
+                </article>`;
             });
 
             renderPagination(Math.ceil(total / CONFIG.perPage));
             if(window.scrollY > 300 && document.getElementById("novel-app-wrapper")) document.getElementById("novel-app-wrapper").scrollIntoView({behavior: 'smooth'});
         }
 
-        function showRecommendations() {
+        async function showRecommendations() {
             const recSection = document.getElementById("recommendedSection");
             const recGrid = document.getElementById("recommendedGrid");
             recSection.style.display = "block"; recGrid.innerHTML = "";
-            shuffleArray([...state.novels]).slice(0, 10).forEach(novel => {
-                recGrid.innerHTML += `<div class="novel-card" style="opacity: 0.9"><h2 class="novel-title" title="${novel.Titles}">${novel.Titles}</h2><div class="card-actions"><a href="${novel.Links}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a></div></div>`;
-            });
+            
+            try {
+                // Fetch 10 random-ish novels from DB for recommendation
+                const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*&limit=10`, { headers: { "apikey": CONFIG.supabaseKey } });
+                const recNovels = await res.json();
+                
+                recNovels.forEach(novel => {
+                    const safeTitle = escapeHTML(novel.Titles);
+                    let safeLink = (novel.Links && /^https?:\/\//i.test(novel.Links)) ? novel.Links : '#';
+
+                    recGrid.innerHTML += `
+                    <div class="novel-card" style="opacity: 0.9">
+                        <h2 class="novel-title" title="${safeTitle}">${safeTitle}</h2>
+                        <div class="card-actions">
+                            <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
+                        </div>
+                    </div>`;
+                });
+            } catch(e) { console.error(e) }
         }
 
-        function showSuggestions(query) {
+        async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
             if (!query) { box.classList.remove("active"); return; }
             const isRestricted = RESTRICTED_KEYWORDS.some(word => query.toLowerCase().includes(word));
             if (isRestricted) { box.classList.remove("active"); return; }
-            const results = state.fuse.search(query).slice(0, 5);
-            if (results.length === 0) { box.classList.remove("active"); return; }
-            box.innerHTML = results.map(r => `<div class="suggestion-item" onclick="selectSuggestion('${r.item.Titles}')"><span>${query}</span>${r.item.Titles.substring(query.length)}</div>`).join("");
-            box.classList.add("active");
+            
+            try {
+                const url = `${CONFIG.supabaseUrl}/rest/v1/novels?Titles=ilike.*${encodeURIComponent(query)}*&select=Titles&limit=5`;
+                const res = await fetch(url, { headers: { "apikey": CONFIG.supabaseKey, "Authorization": `Bearer ${CONFIG.supabaseKey}` } });
+                const results = await res.json();
+                
+                if (results.length === 0) { box.classList.remove("active"); return; }
+                
+                box.innerHTML = results.map(r => {
+                    const safeTitle = escapeHTML(r.Titles);
+                    const jsSafeTitle = r.Titles.replace(/'/g, "\\'"); 
+                    return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">${safeTitle}</div>`;
+                }).join("");
+                
+                box.classList.add("active");
+            } catch(e) {}
         }
 
         function selectSuggestion(title) { document.getElementById("searchBox").value = title; searchNovel(); }
@@ -384,16 +558,26 @@
         function toggleFav(title, link, btn) {
             const idx = state.favorites.findIndex(f => f.Titles === title);
             if (idx === -1) { state.favorites.push({ Titles: title, Links: link }); btn.classList.add("active"); btn.textContent = "\u2764\ufe0f"; showToast("Saved to favorites"); } 
-            else { state.favorites.splice(idx, 1); btn.classList.remove("active"); btn.textContent = "\uD83E\uDD0D"; showToast("Removed from favorites"); if(state.showFavorites) { state.searchResults = state.favorites; renderResults(); } }
+            else { state.favorites.splice(idx, 1); btn.classList.remove("active"); btn.textContent = "\uD83E\uDD0D"; showToast("Removed from favorites"); if(state.showFavorites) { renderResults(); } }
             localStorage.setItem("favorites", JSON.stringify(state.favorites));
         }
 
         function toggleFavorites() {
             state.showFavorites = !state.showFavorites;
             const btn = document.getElementById("favToggle");
-            if (state.showFavorites) { state.searchResults = state.favorites; btn.textContent = "👉 Show All Novels"; btn.style.background = "var(--secondary)"; btn.style.color = "white"; } 
-            else { state.searchResults = shuffleArray([...state.novels]); btn.textContent = "Show Favorites \u2764\ufe0f"; btn.style.background = "white"; btn.style.color = "var(--secondary)"; }
-            state.currentPage = 1; renderResults();
+            state.currentPage = 1;
+            if (state.showFavorites) { 
+                btn.textContent = "👉 Show All Novels"; 
+                btn.style.background = "var(--secondary)"; 
+                btn.style.color = "white"; 
+                renderResults();
+            } 
+            else { 
+                btn.textContent = "Show Favorites \u2764\ufe0f"; 
+                btn.style.background = "white"; 
+                btn.style.color = "var(--secondary)"; 
+                fetchData(document.getElementById("searchBox").value.trim());
+            }
         }
 
         function showToast(msg) {
@@ -418,7 +602,14 @@
                 btn.className = `page-btn ${isNav ? 'nav-btn' : ''} ${page === currentPage && !isNav ? 'active' : ''}`;
                 btn.textContent = text || page;
                 btn.disabled = isDisabled;
-                if (!isDisabled) { btn.onclick = () => { state.currentPage = page; renderResults(); document.getElementById("novel-app-wrapper").scrollIntoView({ behavior: 'smooth' }); }; }
+                if (!isDisabled) { 
+                    btn.onclick = () => { 
+                        state.currentPage = page; 
+                        if (state.showFavorites) { renderResults(); } 
+                        else { fetchData(document.getElementById("searchBox").value.trim()); }
+                        document.getElementById("novel-app-wrapper").scrollIntoView({ behavior: 'smooth' }); 
+                    }; 
+                }
                 return btn;
             };
             const createEllipsis = () => { const span = document.createElement("span"); span.className = "pagination-ellipsis"; span.innerHTML = "&hellip;"; return span; };
@@ -434,10 +625,10 @@
             div.appendChild(createBtn(currentPage + 1, "Next", true, currentPage === totalPages));
         }
 
-        function clearSearch() { document.getElementById("searchBox").value = ""; state.showFavorites = false; document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; displayRandomNovels(); }
+        function clearSearch() { document.getElementById("searchBox").value = ""; state.showFavorites = false; document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; document.getElementById("favToggle").style.background = "white"; document.getElementById("favToggle").style.color = "var(--secondary)"; state.currentPage = 1; fetchData(); }
         function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
-      
+        
         function startVoiceSearch() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast("Voice search not supported"); return; }
