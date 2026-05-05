@@ -1,7 +1,7 @@
 <div id="novel-app-wrapper">
 
     <style>
-        /* --- CORE VARIABLES & RESET --- */
+        /* --- CORE VARIABLES &-- */
         #novel-app-wrapper {
             --primary: #4f46e5;
             --primary-dark: #db2777;
