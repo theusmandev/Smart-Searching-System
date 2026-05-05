@@ -1,4 +1,5 @@
 <div id="novel-app-wrapper">
+
     <style>
         /* --- CORE VARIABLES & RESET --- */
         #novel-app-wrapper {
@@ -12,6 +13,7 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --radius: 12px;
+            
             font-family: 'Arial', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
@@ -93,6 +95,16 @@
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
+        /* --- SUGGESTIONS --- */
+        .suggestions-box {
+            position: absolute; top: 105%; left: 15px; right: 15px;
+            background: white; border-radius: 16px; box-shadow: var(--shadow-lg);
+            overflow: hidden; display: none; max-height: 250px; overflow-y: auto;
+        }
+        .suggestions-box.active { display: block; }
+        .suggestion-item { padding: 12px 20px; border-bottom: 1px solid #f3f4f6; cursor: pointer; font-size: 1rem; }
+        .suggestion-item:hover { background: #f9fafb; color: var(--primary); font-weight: 500; }
+
         /* --- MAIN LAYOUT --- */
         .app-main { flex: 1; padding: 20px; width: 100%; max-width: 1200px; margin: 0 auto; }
         .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: var(--text-sub); flex-wrap: wrap; gap: 10px; }
@@ -122,18 +134,26 @@
         .novel-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
 
         .novel-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: var(--text-main);
             margin-bottom: 20px;
             line-height: 1.4;
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-top: 0;
         }
         
+        mark.highlight {
+            background-color: #fde047;
+            color: #111827;
+            padding: 0 2px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
         .card-actions { display: flex; align-items: center; gap: 10px; margin-top: auto; width: 100%; }
         .btn { border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 
@@ -141,66 +161,84 @@
             flex: 1; background: var(--primary); color: white !important; text-decoration: none; padding: 12px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 8px;
         }
         .btn-download:hover { background: var(--primary-dark); }
+        .btn-download span { font-size: 1.1rem; }
 
-        .btn-secondary { background: #f3f4f6; color: #6b7280; width: 44px; height: 44px; padding: 0; flex-shrink: 0; font-size: 1.1rem; }
+        .btn-secondary { background: #f3f4f6; color: #6b7280; width: 48px; height: 48px; padding: 0; flex-shrink: 0; font-size: 1.2rem; }
         .btn-secondary:hover { background: #e5e7eb; color: var(--primary); }
         .btn-fav.active { color: #ef4444; background: #fee2e2; }
 
         /* --- PAGINATION --- */
-        .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
-        .page-info { font-weight: 600; color: var(--text-sub); }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; flex-wrap: wrap; }
 
         .page-btn {
             display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px;
-            border-radius: 8px; border: 2px solid var(--primary); background: white; color: var(--primary);
-            font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; padding: 0 20px;
+            border-radius: 8px; border: 2px solid #e5e7eb; background: white; color: var(--text-main);
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; padding: 0 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .page-btn:hover:not(:disabled) { background: var(--primary); color: white; }
-        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #ccc; color: #999; }
+        .page-btn:hover:not(:disabled):not(.active) { border-color: var(--primary); color: var(--primary); background: #f9fafb; }
+        .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        
+        .page-btn.nav-btn { min-width: auto; padding: 0 24px; font-weight: 700; color: var(--primary); border-color: var(--primary); }
+        .page-btn.nav-btn:hover:not(:disabled) { background: var(--primary); color: white; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #e5e7eb !important; color: var(--text-sub) !important; background: white !important; box-shadow: none; }
 
-        /* --- SKELETON --- */
+        /* --- MISC --- */
+        .fav-section-btn { display: block; margin: 0; background: white; border: 2px solid var(--secondary); color: var(--secondary); padding: 8px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .fav-section-btn:hover { background: var(--secondary); color: white; }
+
+        .btn-go-back {
+            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); display: inline-flex; align-items: center; gap: 8px;
+        }
+
         .skeleton { background: #e5e7eb; border-radius: 6px; animation: shimmer 1.5s infinite linear; }
         .skeleton-text { height: 20px; width: 80%; margin-bottom: 10px; }
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
         @keyframes shimmer { 0% { background: #e5e7eb; } 50% { background: #f3f4f6; } 100% { background: #e5e7eb; } }
 
         .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
-        .toast { background: #1f2937; color: white; padding: 12px 24px; border-radius: 50px; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: 0.3s; font-size: 0.9rem; box-shadow: var(--shadow-lg); }
-        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast { background: #1f2937; color: white; padding: 12px 24px; border-radius: 50px; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg); font-size: 0.9rem; }
+        .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap;}
         
-        .btn-go-back {
-            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px;
-        }
-
         @media (max-width: 600px) {
-            .app-header h1 { font-size: 1.5rem; }
-            .novel-title { font-size: 1rem; -webkit-line-clamp: 2; }
+            .search-box-wrapper { padding: 3px 3px 3px 10px; gap: 2px; }
+            #searchBox { padding: 6px 0px; height: 40px; font-size: 14px; }
+            .action-icon { width: 28px; height: 28px; font-size: 0.8rem; margin-left: 8px; }
+            .search-submit { padding: 0 10px; font-size: 0.8rem; height: 28px; border-radius: 5px; width: auto; }
+            .novel-title { font-size: 0.95rem; -webkit-line-clamp: 3; line-height: 1.3; margin-bottom: 10px; min-height: 2.5rem; }
+            .novel-card { padding: 15px; min-height: auto; }
         }
     </style>
 
     <div class="app-header">
         <h1><i>Smart Novel Bank</i></h1>
-        <p class="subtitle">Access 78,000+ Urdu novels instantly. Fast, clean, and reliable.</p>
+        <p class="subtitle">Search, discover, and download your favorite Urdu novels in PDF format.</p>
     </div>
 
     <div class="search-container">
         <div class="search-box-wrapper">
-            <input aria-label="Search" id="searchBox" type="text" placeholder="Type novel title (e.g. Jannat)..." maxlength="80"/>
+            <input aria-label="Search" id="searchBox" type="text" placeholder="Search novel title..." maxlength="80"/>
             <button aria-label="Voice Search" class="action-icon mic" onclick="startVoiceSearch()">🎙️</button>
             <button aria-label="Clear Search" class="action-icon" onclick="clearSearch()">✕</button>
             <button aria-label="Submit Search" class="action-icon search-submit" onclick="searchNovel()">Search</button>
         </div>
+        <div class="suggestions-box" id="suggestions"></div>
     </div>
 
     <div class="app-main">
         <div class="controls">
-            <span id="resultCount">Connecting to Library...</span>
-            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
+            <span id="resultCount">Loading Library...</span>
+            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites</button>
         </div>
 
         <div class="grid-container" id="results"></div>
+        <div id="recommendedSection" style="display: none; margin-top: 30px;">
+            <h3 style="margin-bottom: 30px; text-align: center;">You Might Like</h3>
+            <div class="grid-container" id="recommendedGrid"></div>
+        </div>
         <div class="pagination" id="pagination"></div>
     </div>
 
@@ -210,40 +248,41 @@
         const CONFIG = {
             supabaseUrl: "https://qcpjvngjwbulkkpdxouq.supabase.co",
             supabaseKey: "sb_publishable_dCy-rNGFvPGhzbfhLmhvyg_wKzxmeFF",
-            perPage: 21,
-            googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec"
+            googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
+            perPage: 21
         };
 
-        const RESTRICTED_KEYWORDS = ["bold", "sexy", "sex", "18+", "adult", "dirty", "kiss", "ganda", "gandi", "galat", "suhagrat", "tharki", "porn", "nude", "husna kanwal", "husnay kanwal"];
+        const RESTRICTED_KEYWORDS = ["bold", "sexy", "sex", "18+", "adult", "dirty", "kiss", "ganda", "gandi", "galat","suhagrat","tharki","porn","nude","husna kanwal","husnay kanwal"];
 
         let state = { 
             searchResults: [], 
+            totalResults: 0,
             currentPage: 1, 
-            totalFound: 0,
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
             showFavorites: false 
         };
 
-        (function init() { 
-            fetchData(); 
-            setupEventListeners(); 
-        })();
+        (function init() { fetchData(); setupEventListeners(); })();
+
+        function escapeHTML(str) {
+            if (!str) return "";
+            return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+        }
 
         function setupEventListeners() {
             const searchBox = document.getElementById("searchBox");
-            searchBox.addEventListener("keydown", (e) => { if (e.key === "Enter") { searchNovel(); } });
+            searchBox.addEventListener("input", debounce((e) => showSuggestions(e.target.value), 300));
+            searchBox.addEventListener("keydown", (e) => { if (e.key === "Enter") { document.getElementById("suggestions").classList.remove("active"); searchNovel(); } });
+            document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
         }
 
-        // --- FETCH DATA FROM SUPABASE ---
         async function fetchData(query = "") {
             showSkeletonLoading();
             const start = (state.currentPage - 1) * CONFIG.perPage;
             const end = start + CONFIG.perPage - 1;
 
             let url = `${CONFIG.supabaseUrl}/rest/v1/novels?select=*`;
-            
             if (query) {
-                // Roman Urdu/English ke liye 'ilike' (Case-insensitive) search
                 url += `&Titles=ilike.*${encodeURIComponent(query)}*`;
             }
 
@@ -259,79 +298,79 @@
                 });
 
                 const data = await response.json();
-                
-                // Content-Range header se total records nikalna
                 const contentRange = response.headers.get("content-range");
-                state.totalFound = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+                state.totalResults = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
                 state.searchResults = data;
-
                 renderResults();
             } catch (err) {
-                console.error("Supabase Error:", err);
-                document.getElementById("results").innerHTML = "<p style='grid-column:1/-1; text-align:center;'>Unable to connect to the novel bank. Please refresh.</p>";
+                console.error(err);
+                document.getElementById("results").innerHTML = "<p style='text-align:center'>Connection Error. Please check your internet.</p>";
             }
         }
 
         function searchNovel() {
             const queryRaw = document.getElementById("searchBox").value.trim();
             const query = queryRaw.toLowerCase();
-            
-            // Safety Checks
-            if (RESTRICTED_KEYWORDS.some(word => query.includes(word))) {
-                showRestrictionMessage();
-                return;
+            document.getElementById("searchBox").blur();
+            document.getElementById("suggestions").classList.remove("active");
+
+            if (RESTRICTED_KEYWORDS.find(word => query.includes(word))) {
+                showSecurityUI("restricted"); return;
+            }
+            if (/[\u0600-\u06FF]/.test(queryRaw)) {
+                showSecurityUI("urdu"); return;
+            }
+            if (query !== "" && query.replace(/\s/g, '').length < 3) {
+                showSecurityUI("short"); return;
             }
 
-            const urduPattern = /[\u0600-\u06FF]/;
-            if (urduPattern.test(queryRaw)) {
-                showUrduWarning();
-                return;
-            }
-
-            state.showFavorites = false;
             state.currentPage = 1;
+            state.showFavorites = false;
             fetchData(queryRaw);
-            
-            // Log search
             logSearch(queryRaw, false);
         }
 
         function renderResults() {
             const grid = document.getElementById("results");
+            document.getElementById("recommendedSection").style.display = "none";
             grid.innerHTML = "";
             
-            const total = state.showFavorites ? state.favorites.length : state.totalFound;
-            document.getElementById("resultCount").textContent = `Library: ${total} Novels Available`;
-
             const dataToRender = state.showFavorites ? state.favorites : state.searchResults;
+            const total = state.showFavorites ? state.favorites.length : state.totalResults;
+            
+            document.getElementById("resultCount").textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
-            if (dataToRender.length === 0) {
-                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px;"><h3>No novels found 😕</h3><button class="btn-go-back" onclick="clearSearch()">⬅ Return to Library</button></div>`;
-                document.getElementById("pagination").innerHTML = "";
-                return;
+            if (total === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3><button class="btn-go-back" onclick="clearSearch()">⬅ Go Back to Library</button></div>`;
+                document.getElementById("pagination").innerHTML = ""; return;
             }
+
+            const searchQuery = document.getElementById("searchBox").value.trim();
 
             dataToRender.forEach(novel => {
                 const isFav = state.favorites.some(f => f.Titles === novel.Titles);
-                const jsSafeTitle = novel.Titles.replace(/'/g, "\\'");
-                const safeLink = (novel.Links && novel.Links.startsWith('http')) ? novel.Links : '#';
+                let safeTitle = escapeHTML(novel.Titles);
+                
+                if (searchQuery && searchQuery.length >= 3 && !state.showFavorites) {
+                    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    safeTitle = safeTitle.replace(regex, '<mark class="highlight">$1</mark>');
+                }
+
+                const jsSafeTitle = novel.Titles.replace(/'/g, "\\'"); 
+                const safeLink = novel.Links || '#';
 
                 grid.innerHTML += `
-                    <article class="novel-card">
-                        <h2 class="novel-title">${novel.Titles}</h2>
-                        <div class="card-actions">
-                            <button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${jsSafeTitle}', '${safeLink}', this)">${isFav ? '❤️' : '🤍'}</button>
-                            <button class="btn btn-secondary" onclick="shareNovel('${jsSafeTitle}', '${safeLink}')">🔗</button>
-                            <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
-                        </div>
-                    </article>`;
+                <article class="novel-card">
+                    <h2 class="novel-title" title="${escapeHTML(novel.Titles)}">${safeTitle}</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${jsSafeTitle}', '${safeLink}', this)">${isFav ? '❤️' : '🤍'}</button>
+                        <button class="btn btn-secondary" onclick="shareNovel('${jsSafeTitle}', '${safeLink}')">🔗</button>
+                        <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
+                    </div>
+                </article>`;
             });
 
-            if (!state.showFavorites) {
-                renderPagination(Math.ceil(state.totalFound / CONFIG.perPage));
-            } else {
-                document.getElementById("pagination").innerHTML = "";
-            }
+            if (!state.showFavorites) renderPagination(Math.ceil(total / CONFIG.perPage));
         }
 
         function renderPagination(totalPages) {
@@ -339,107 +378,97 @@
             div.innerHTML = "";
             if (totalPages <= 1) return;
 
-            const createBtn = (text, targetPage, isDisabled) => {
+            const createBtn = (page, text, isNav = false, isDisabled = false) => {
                 const btn = document.createElement("button");
-                btn.className = "page-btn";
-                btn.textContent = text;
+                btn.className = `page-btn ${isNav ? 'nav-btn' : ''} ${page === state.currentPage && !isNav ? 'active' : ''}`;
+                btn.textContent = text || page;
                 btn.disabled = isDisabled;
-                btn.onclick = () => { 
-                    state.currentPage = targetPage; 
-                    fetchData(document.getElementById("searchBox").value.trim()); 
-                    window.scrollTo({top: 0, behavior: 'smooth'});
-                };
+                btn.onclick = () => { state.currentPage = page; fetchData(document.getElementById("searchBox").value.trim()); window.scrollTo({top: 0, behavior: 'smooth'}); };
                 return btn;
             };
 
-            div.appendChild(createBtn("Previous", state.currentPage - 1, state.currentPage === 1));
+            div.appendChild(createBtn(state.currentPage - 1, "Prev", true, state.currentPage === 1));
             
-            const info = document.createElement("span");
-            info.className = "page-info";
-            info.textContent = `Page ${state.currentPage} of ${totalPages}`;
-            div.appendChild(info);
+            // Simple logic for current page info
+            const span = document.createElement("span");
+            span.textContent = `Page ${state.currentPage} of ${totalPages}`;
+            span.style.margin = "0 10px";
+            div.appendChild(span);
 
-            div.appendChild(createBtn("Next", state.currentPage + 1, state.currentPage === totalPages));
+            div.appendChild(createBtn(state.currentPage + 1, "Next", true, state.currentPage === totalPages));
         }
+
+        function showSecurityUI(type) {
+            const grid = document.getElementById("results");
+            const configs = {
+                restricted: { bg: '#fee2e2', border: '#ef4444', icon: '🛡️', title: 'Search Restricted', p: 'Search for decent Urdu novels only.' },
+                urdu: { bg: '#eff6ff', border: '#3b82f6', icon: '⌨️', title: 'Use English / Roman Urdu', p: 'Example: Type "Jannat" instead of "جنت"' },
+                short: { bg: '#fef3c7', border: '#d97706', icon: '🤔', title: 'Search Too Short', p: 'Type at least 3 characters.' }
+            };
+            const c = configs[type];
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: ${c.bg}; border-radius: 12px; border: 1px solid ${c.border};">
+                <div style="font-size: 3rem;">${c.icon}</div><h3>${c.title}</h3><p>${c.p}</p>
+                <button class="btn-go-back" onclick="clearSearch()">Try Again</button>
+            </div>`;
+            document.getElementById("pagination").innerHTML = "";
+        }
+
+        async function showSuggestions(query) {
+            const box = document.getElementById("suggestions");
+            if (!query || query.length < 2) { box.classList.remove("active"); return; }
+            
+            const url = `${CONFIG.supabaseUrl}/rest/v1/novels?Titles=ilike.*${encodeURIComponent(query)}*&select=Titles&limit=5`;
+            try {
+                const res = await fetch(url, { headers: {"apikey": CONFIG.supabaseKey, "Authorization": `Bearer ${CONFIG.supabaseKey}`} });
+                const data = await res.json();
+                if (data.length === 0) { box.classList.remove("active"); return; }
+                box.innerHTML = data.map(item => `<div class="suggestion-item" onclick="selectSuggestion('${item.Titles.replace(/'/g, "\\'")}')">${escapeHTML(item.Titles)}</div>`).join("");
+                box.classList.add("active");
+            } catch(e) {}
+        }
+
+        function selectSuggestion(title) { document.getElementById("searchBox").value = title; searchNovel(); }
 
         function toggleFav(title, link, btn) {
             const idx = state.favorites.findIndex(f => f.Titles === title);
-            if (idx === -1) {
-                state.favorites.push({ Titles: title, Links: link });
-                btn.classList.add("active"); btn.textContent = "❤️";
-                showToast("Saved to favorites");
-            } else {
-                state.favorites.splice(idx, 1);
-                btn.classList.remove("active"); btn.textContent = "🤍";
-                showToast("Removed from favorites");
-            }
+            if (idx === -1) { state.favorites.push({ Titles: title, Links: link }); btn.classList.add("active"); btn.textContent = "❤️"; showToast("Saved"); } 
+            else { state.favorites.splice(idx, 1); btn.classList.remove("active"); btn.textContent = "🤍"; showToast("Removed"); }
             localStorage.setItem("favorites", JSON.stringify(state.favorites));
-            if (state.showFavorites) renderResults();
+            if(state.showFavorites) renderResults();
         }
 
         function toggleFavorites() {
             state.showFavorites = !state.showFavorites;
             const btn = document.getElementById("favToggle");
-            if (state.showFavorites) {
-                btn.textContent = "Show All Library";
-                btn.style.background = "var(--secondary)";
-                btn.style.color = "white";
-            } else {
-                btn.textContent = "Show Favorites ❤️";
-                btn.style.background = "white";
-                btn.style.color = "var(--secondary)";
-            }
-            renderResults();
-        }
-
-        function clearSearch() {
-            document.getElementById("searchBox").value = "";
+            btn.textContent = state.showFavorites ? "Show All Library" : "Show Favorites";
             state.currentPage = 1;
-            fetchData();
+            state.showFavorites ? renderResults() : fetchData();
         }
 
         function showSkeletonLoading() {
             const grid = document.getElementById("results");
-            grid.innerHTML = "";
-            for(let i=0; i<6; i++) {
-                grid.innerHTML += `<div class="novel-card"><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-btn"></div></div>`;
-            }
+            grid.innerHTML = Array(6).fill(`<div class="novel-card"><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width: 60%"></div><div class="skeleton skeleton-btn"></div></div>`).join("");
         }
 
         function showToast(msg) {
             const container = document.getElementById("toastContainer");
-            const toast = document.createElement("div"); toast.className = "toast"; toast.textContent = msg; 
-            container.appendChild(toast);
+            const toast = document.createElement("div"); toast.className = "toast"; toast.textContent = msg; container.appendChild(toast);
             setTimeout(() => toast.classList.add("show"), 10);
-            setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 2500);
+            setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 2000);
         }
 
-        function shareNovel(title, link) {
-            if (navigator.share) navigator.share({ title: title, url: link });
-            else { navigator.clipboard.writeText(link); showToast("Link copied to clipboard!"); }
-        }
-
+        function clearSearch() { document.getElementById("searchBox").value = ""; state.currentPage = 1; fetchData(); }
+        function debounce(f, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), w); }; }
+        function shareNovel(t, l) { if (navigator.share) navigator.share({ title: t, url: l }); else { navigator.clipboard.writeText(l); showToast("Link copied!"); } }
         function startVoiceSearch() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) { showToast("Voice search not supported"); return; }
+            if (!SR) { showToast("Not supported"); return; }
             const r = new SR();
             r.onstart = () => { document.getElementById("searchBox").placeholder = "Listening..."; document.querySelector(".mic").classList.add("listening"); };
-            r.onend = () => { document.getElementById("searchBox").placeholder = "Search novel title..."; document.querySelector(".mic").classList.remove("listening"); };
+            r.onend = () => { document.getElementById("searchBox").placeholder = "Search..."; document.querySelector(".mic").classList.remove("listening"); };
             r.onresult = (e) => { document.getElementById("searchBox").value = e.results[0][0].transcript; searchNovel(); };
             r.start();
         }
-
-        function showUrduWarning() {
-            document.getElementById("results").innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; background:#eff6ff; border-radius:12px; border:1px solid #3b82f6;"><h3 style="color:#1d4ed8;">Please Use English Letters</h3><p>Example: Type <b>"Namal"</b> instead of <b>"نمل"</b></p><button class="btn-go-back" onclick="clearSearch()">Try Again</button></div>`;
-        }
-
-        function showRestrictionMessage() {
-            document.getElementById("results").innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; background:#fee2e2; border-radius:12px; border:1px solid #ef4444;"><h3 style="color:#b91c1c;">Restricted Search</h3><p>We maintain a family-friendly novel bank.</p><button class="btn-go-back" onclick="clearSearch()" style="background:#dc2626;">Clear Search</button></div>`;
-        }
-
-        function logSearch(q, n) {
-            const params = new URLSearchParams({ search: q, timestamp: new Date().toISOString(), noResults: n });
-            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
-        }
+        function logSearch(q, n) { fetch(CONFIG.googleScript, { method: 'POST', body: new URLSearchParams({ search: q, noResults: n }) }).catch(e => {}); }
     </script>
 </div>
