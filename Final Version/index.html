@@ -154,7 +154,7 @@
             margin-top: 0;
         }
         
-        /* --- HIGHLIGHT STYLE (New) --- */
+        /* --- HIGHLIGHT STYLE --- */
         mark.highlight {
             background-color: #fde047; /* Yellow */
             color: #111827;
@@ -297,12 +297,15 @@
         let typeTextIdx = 0;
         let charIdx = 0;
         let isDeleting = false;
+        let typewriterTimeout;
+        let isFocused = false; // Check agar user ne click kiya hai
 
         function typeWriterPlaceholder() {
             const searchInput = document.getElementById("searchBox");
-            // Agar user ne khud kuch likh diya hai to typewriter ruk jaye
-            if (searchInput.value.trim() !== "") {
-                setTimeout(typeWriterPlaceholder, 2000);
+            
+            // Agar user ne click kiya hai ya kuch type kiya hai to typewriter ruk jaye
+            if (isFocused || searchInput.value.trim() !== "") {
+                clearTimeout(typewriterTimeout);
                 return;
             }
 
@@ -319,7 +322,7 @@
             let typingSpeed = isDeleting ? 40 : 80;
 
             if (!isDeleting && charIdx === currentText.length) {
-                typingSpeed = 2000; // Poora likhne ke baad thori der rukay
+                typingSpeed = 2000; // Likhne ke baad thori der rukay
                 isDeleting = true;
             } else if (isDeleting && charIdx === 0) {
                 isDeleting = false;
@@ -327,7 +330,7 @@
                 typingSpeed = 500; // Naya shuru karne se pehle wait
             }
 
-            setTimeout(typeWriterPlaceholder, typingSpeed);
+            typewriterTimeout = setTimeout(typeWriterPlaceholder, typingSpeed);
         }
 
         (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); typeWriterPlaceholder(); })();
@@ -352,6 +355,22 @@
             searchBox.addEventListener("input", debounce((e) => showSuggestions(e.target.value), 300));
             searchBox.addEventListener("keydown", (e) => { if (e.key === "Enter") { document.getElementById("suggestions").classList.remove("active"); searchNovel(); } });
             document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
+            
+            // --- FOCUS / BLUR EVENTS FOR TYPEWRITER ---
+            searchBox.addEventListener("focus", () => {
+                isFocused = true;
+                clearTimeout(typewriterTimeout);
+                searchBox.setAttribute("placeholder", "Search novel title..."); // Click hone par simple text aa jaye
+            });
+            
+            searchBox.addEventListener("blur", () => {
+                isFocused = false;
+                if (searchBox.value.trim() === "") {
+                    charIdx = 0;
+                    isDeleting = false;
+                    typeWriterPlaceholder(); // Bahar click karne par wapis start ho jaye
+                }
+            });
         }
 
         // --- FETCH DATA FROM VERCEL API ---
@@ -499,10 +518,8 @@
             if (state.showFavorites) {
                 dataToRender = state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage);
             } else if (searchQuery !== "") {
-                // Agar user search kar raha hai, to saare results ko 21 ke hisab se slice kar do
                 dataToRender = state.searchResults.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage);
             } else {
-                // Agar normal library dekh raha hai, to API ne pehle hi 21 bheje hain
                 dataToRender = state.searchResults;
             }
 
