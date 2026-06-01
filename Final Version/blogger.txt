@@ -378,12 +378,11 @@
         let isDeleting = false;
         let typewriterTimeout;
         let isFocused = false; 
-        let isListening = false; // Naya variable mic status ke liye
+        let isListening = false; 
 
         function typeWriterPlaceholder() {
             const searchInput = document.getElementById("searchBox");
             
-            // Agar box pe click ho, ya kuch likha ho, ya mic chal raha ho to typewriter ruk jaye
             if (isFocused || searchInput.value.trim() !== "" || isListening) {
                 clearTimeout(typewriterTimeout);
                 return;
@@ -741,7 +740,6 @@
                 
                 const suggestionsList = (result.data || []).slice(0, 5);
                 
-                // FIX: Agar results na milain to suggestions box hide kar do
                 if (suggestionsList.length === 0) { 
                     box.classList.remove("active");
                     return; 
@@ -758,7 +756,6 @@
                         highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--primary); font-weight: 800;">$1</span>');
                     } catch(e) {}
 
-                    // Simple Google-style SVG Icon
                     return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">
                                 <span class="suggestion-icon">
                                     <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
@@ -852,7 +849,6 @@
         function clearSearch() { 
             document.getElementById("searchBox").value = ""; 
             toggleClearBtn(); 
-            // FIX: Clear dabane par suggestions bhi hide hon gi
             document.getElementById("suggestions").classList.remove("active"); 
             state.showFavorites = false; 
             document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; 
@@ -865,34 +861,53 @@
 
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
         
-        function startVoiceSearch() {
+function startVoiceSearch() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) { showToast("Voice search not supported"); return; }
+            if (!SR) { showToast("Voice search not supported on this browser."); return; }
             const r = new SR();
+            
+            r.lang = 'en-US'; 
+            
             r.onstart = () => { 
-                isListening = true; // Mic ON
-                clearTimeout(typewriterTimeout); // Typewriter rok do
-                document.getElementById("searchBox").placeholder = "Listening..."; 
+                isListening = true; 
+                clearTimeout(typewriterTimeout); 
+                
+                // NAYI LINES: Mic dabate hi purana text clear kar do taake "Listening" theek se dikhay
+                document.getElementById("searchBox").value = ""; 
+                toggleClearBtn(); 
+                document.getElementById("suggestions").classList.remove("active");
+
+                document.getElementById("searchBox").placeholder = "Listening... Speak now"; 
                 document.querySelector(".mic").classList.add("listening"); 
             };
+            
             r.onend = () => { 
-                isListening = false; // Mic OFF
+                isListening = false; 
                 document.getElementById("searchBox").placeholder = "Search novel title..."; 
                 document.querySelector(".mic").classList.remove("listening"); 
                 
-                // Agar kuch na likha jaye to typewriter wapis start kar do
                 if (document.getElementById("searchBox").value.trim() === "" && !isFocused) {
                     charIdx = 0;
                     isDeleting = false;
                     typeWriterPlaceholder();
                 }
             };
+
             r.onresult = (e) => { 
                 const transcript = e.results[0][0].transcript; 
                 document.getElementById("searchBox").value = transcript; 
                 toggleClearBtn(); 
                 searchNovel(); 
             };
+
+            r.onerror = (event) => {
+                if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                    showToast("Didn't catch that. Please try again.");
+                } else if (event.error === 'not-allowed') {
+                    showToast("Microphone access denied.");
+                }
+            };
+
             r.start();
         }
 
