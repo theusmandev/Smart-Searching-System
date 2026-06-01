@@ -647,9 +647,25 @@
             const total = state.showFavorites ? state.favorites.length : state.totalResults;
             document.getElementById("resultCount").textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
+            // --- NAYI LOGIC: FAVORITES AUR SEARCH KE LIYE ALAG ALAG EMPTY MESSAGES ---
             if (total === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;"><h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3><p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p><button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button></div>`;
-                showRecommendations(); 
+                if (state.showFavorites) {
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">❤️</div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No Favorites Yet</h3>
+                        <p style="color: var(--text-sub); margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
+                    </div>`;
+                    showRecommendations(); 
+                } else {
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3>
+                        <p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p>
+                        <button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button>
+                    </div>`;
+                    showRecommendations(); 
+                }
                 document.getElementById("pagination").innerHTML = ""; 
                 return;
             }
@@ -861,7 +877,7 @@
 
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
         
-function startVoiceSearch() {
+        function startVoiceSearch() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast("Voice search not supported on this browser."); return; }
             const r = new SR();
@@ -872,7 +888,6 @@ function startVoiceSearch() {
                 isListening = true; 
                 clearTimeout(typewriterTimeout); 
                 
-                // NAYI LINES: Mic dabate hi purana text clear kar do taake "Listening" theek se dikhay
                 document.getElementById("searchBox").value = ""; 
                 toggleClearBtn(); 
                 document.getElementById("suggestions").classList.remove("active");
