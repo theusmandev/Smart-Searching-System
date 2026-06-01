@@ -58,15 +58,45 @@
             max-width: 800px;
         }
 
+        /* Main Wrapper (Creates context for layers) */
         .search-box-wrapper {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
             padding: 8px;
             border-radius: 10px;
             box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            border: 1px solid rgba(255,255,255,0.5);
+            background: transparent; /* Let inner layers handle color */
+            border: none;
+        }
+
+        /* LAYER 1: The Outer Animated Gradient Border (Behind everything) */
+        .search-box-wrapper::before {
+            content: "";
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px; /* 2px border */
+            background: linear-gradient(90deg, #ff007a, #4f46e5, #00d2ff, #ff007a);
+            background-size: 300% 300%;
+            z-index: -2;
+            border-radius: 12px;
+            animation: borderMoving 4s linear infinite;
+        }
+
+        /* LAYER 2: The Inner White Solid Background (Above gradient, below text) */
+        .search-box-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: -1;
+            border-radius: 10px;
+        }
+
+        @keyframes borderMoving {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
         }
 
         #searchBox {
@@ -97,12 +127,11 @@
             flex-shrink: 0;
         }
 
-        .action-icon:hover { background: #db2777; transform: scale(1.05); }
+        .action-icon:hover { background: #db2777; transform: scale(1.05); color: white;}
         .action-icon.mic.listening { background: #10b981; color: white; animation: pulse 1.5s infinite; }
         
-        /* --- SEARCH BUTTON WITH ANIMATED BORDER --- */
+        /* Normal Original Search Button */
         .search-submit { 
-            position: relative;
             background: var(--primary); 
             color: white; 
             border-radius: 10px; 
@@ -110,31 +139,13 @@
             width: auto; 
             font-weight: 600; 
             cursor: pointer;
-            border: 2px solid transparent; /* Border ke liye transparent jagah */
-            background-clip: padding-box; /* Background ko border ke andar limit karega */
-            z-index: 1;
+            border: none;
             transition: 0.2s;
         }
 
         .search-submit:hover { 
+            background: var(--primary-dark); 
             transform: scale(1.05); 
-        }
-
-        /* Border Animation Element */
-        .search-submit::before {
-            content: "";
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(90deg, #ff007a, #4f46e5, #00d2ff, #ff007a);
-            background-size: 300% 300%;
-            z-index: -1;
-            border-radius: 12px; /* Button se 2px zyada taake curve theek baithay */
-            animation: borderMoving 3s linear infinite;
-        }
-
-        @keyframes borderMoving {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
         }
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -192,7 +203,7 @@
         
         /* --- HIGHLIGHT STYLE --- */
         mark.highlight {
-            background-color: #fde047; /* Yellow */
+            background-color: #fde047;
             color: #111827;
             padding: 0 2px;
             border-radius: 4px;
