@@ -9,7 +9,7 @@
 <div id="novel-app-wrapper">
 
     <style>
-/* --- CORE VARIABLES & RESET --- */
+        /* --- CORE VARIABLES & RESET --- */
         #novel-app-wrapper {
             --primary: #4f46e5;
             --primary-dark: #db2777;
@@ -58,45 +58,15 @@
             max-width: 800px;
         }
 
-        /* Main Wrapper (Creates context for layers) */
         .search-box-wrapper {
-            position: relative;
-            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             padding: 8px;
             border-radius: 10px;
             box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            background: transparent; /* Let inner layers handle color */
-            border: none;
-        }
-
-        /* LAYER 1: The Outer Animated Gradient Border (Behind everything) */
-        .search-box-wrapper::before {
-            content: "";
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px; /* 2px border */
-            background: linear-gradient(90deg, #ff007a, #4f46e5, #00d2ff, #ff007a);
-            background-size: 300% 300%;
-            z-index: -2;
-            border-radius: 12px;
-            animation: borderMoving 4s linear infinite;
-        }
-
-        /* LAYER 2: The Inner White Solid Background (Above gradient, below text) */
-        .search-box-wrapper::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            z-index: -1;
-            border-radius: 10px;
-        }
-
-        @keyframes borderMoving {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
         #searchBox {
@@ -127,26 +97,9 @@
             flex-shrink: 0;
         }
 
-        .action-icon:hover { background: #db2777; transform: scale(1.05); color: white;}
+        .action-icon:hover { background: #db2777; transform: scale(1.05); }
         .action-icon.mic.listening { background: #10b981; color: white; animation: pulse 1.5s infinite; }
-        
-        /* Normal Original Search Button */
-        .search-submit { 
-            background: var(--primary); 
-            color: white; 
-            border-radius: 10px; 
-            padding: 0 24px; 
-            width: auto; 
-            font-weight: 600; 
-            cursor: pointer;
-            border: none;
-            transition: 0.2s;
-        }
-
-        .search-submit:hover { 
-            background: var(--primary-dark); 
-            transform: scale(1.05); 
-        }
+        .search-submit { background: var(--primary); color: white; border-radius: 10px; padding: 0 24px; width: auto; font-weight: 600; }
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
@@ -201,9 +154,9 @@
             margin-top: 0;
         }
         
-        /* --- HIGHLIGHT STYLE --- */
+        /* --- HIGHLIGHT STYLE (New) --- */
         mark.highlight {
-            background-color: #fde047;
+            background-color: #fde047; /* Yellow */
             color: #111827;
             padding: 0 2px;
             border-radius: 4px;
@@ -314,7 +267,6 @@
 
     <script>
         const CONFIG = {
-            // Yahan par apna exact Vercel URL laga lein (Agar zarurat ho)
             apiUrl: "https://smart-novel-api.vercel.app/api/search",
             googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
             perPage: 21
@@ -335,7 +287,50 @@
             randomOffset: Math.floor(Math.random() * 75000) 
         };
 
-        (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); })();
+        // --- TYPEWRITER PLACEHOLDER LOGIC ---
+        const typingTexts = [
+            "Search for 'Peer-e-Kamil'...",
+            "Search for 'Namal'...",
+            "Search for 'Jannat Kay Pattay'...",
+            "Find your favorite Urdu novel..."
+        ];
+        let typeTextIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+
+        function typeWriterPlaceholder() {
+            const searchInput = document.getElementById("searchBox");
+            // Agar user ne khud kuch likh diya hai to typewriter ruk jaye
+            if (searchInput.value.trim() !== "") {
+                setTimeout(typeWriterPlaceholder, 2000);
+                return;
+            }
+
+            const currentText = typingTexts[typeTextIdx];
+            
+            if (isDeleting) {
+                searchInput.setAttribute("placeholder", currentText.substring(0, charIdx - 1));
+                charIdx--;
+            } else {
+                searchInput.setAttribute("placeholder", currentText.substring(0, charIdx + 1));
+                charIdx++;
+            }
+
+            let typingSpeed = isDeleting ? 40 : 80;
+
+            if (!isDeleting && charIdx === currentText.length) {
+                typingSpeed = 2000; // Poora likhne ke baad thori der rukay
+                isDeleting = true;
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                typeTextIdx = (typeTextIdx + 1) % typingTexts.length;
+                typingSpeed = 500; // Naya shuru karne se pehle wait
+            }
+
+            setTimeout(typeWriterPlaceholder, typingSpeed);
+        }
+
+        (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); typeWriterPlaceholder(); })();
 
         // --- SECURITY FUNCTION ---
         function escapeHTML(str) {
