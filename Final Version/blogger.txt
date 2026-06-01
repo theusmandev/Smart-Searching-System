@@ -254,8 +254,27 @@
         .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; font-size: 1.5rem; color: var(--text-sub); padding-bottom: 8px; }
 
         /* --- MISC --- */
-        .fav-section-btn { display: block; margin: 0; background: white; border: 2px solid var(--secondary); color: var(--secondary); padding: 8px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .fav-section-btn:hover { background: var(--secondary); color: white; }
+        
+        /* Updated Favorites Button UI */
+        .fav-section-btn { 
+            display: inline-flex; 
+            align-items: center;
+            gap: 8px;
+            margin: 0; 
+            background: white; 
+            border: 2px solid var(--secondary); 
+            color: var(--secondary); 
+            padding: 10px 24px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .fav-section-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(236, 72, 153, 0.2); 
+        }
 
         .btn-go-back {
             background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
@@ -327,7 +346,7 @@
     <div class="app-main">
         <div class="controls">
             <span id="resultCount">Loading Library...</span>
-            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites</button>
+            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
         </div>
 
         <div class="grid-container" id="results"></div>
@@ -568,6 +587,7 @@
                 if (foundBadWord) {
                     logSearch(queryRaw + " (Restricted)", true);
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
+                    document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
@@ -585,6 +605,7 @@
                 if (urduPattern.test(queryRaw)) {
                     logSearch(queryRaw + " (Urdu Input)", true);
                     document.getElementById("resultCount").textContent = "🔤 English Required";
+                    document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eff6ff; border-radius: 12px; border: 1px solid #3b82f6;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
@@ -601,6 +622,7 @@
                 if (query !== "" && query !== "all" && query.replace(/\s/g, '').length < 3) {
                     logSearch(queryRaw + " (Too Short)", true);
                     document.getElementById("resultCount").textContent = "? Unclear Search";
+                    document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px; border: 1px solid #d97706;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div><br>
@@ -641,23 +663,27 @@
         
       function renderResults() {
             const grid = document.getElementById("results");
+            const resultCountSpan = document.getElementById("resultCount");
             document.getElementById("recommendedSection").style.display = "none";
             grid.innerHTML = "";
             
             const total = state.showFavorites ? state.favorites.length : state.totalResults;
-            document.getElementById("resultCount").textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
             // --- NAYI LOGIC: FAVORITES AUR SEARCH KE LIYE ALAG ALAG EMPTY MESSAGES ---
             if (total === 0) {
                 if (state.showFavorites) {
+                    // Counter hide kar diya
+                    resultCountSpan.style.visibility = "hidden";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <div style="font-size: 3rem; margin-bottom: 10px;">❤️</div>
-                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No Favorites Yet</h3>
-                        <p style="color: var(--text-sub); margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
+                        <div style="font-size: 3.5rem; margin-bottom: 15px; opacity: 0.5; filter: grayscale(100%);">🤍</div>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: var(--text-main); font-weight: 700;">No Favorites Yet</h3>
+                        <p style="color: #4b5563; font-size: 1.05rem; font-weight: 500; margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
                     </div>`;
                     showRecommendations(); 
                 } else {
+                    resultCountSpan.style.visibility = "visible";
+                    resultCountSpan.textContent = "Found Novels: 0";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                         <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3>
@@ -669,6 +695,10 @@
                 document.getElementById("pagination").innerHTML = ""; 
                 return;
             }
+
+            // Agar results majood hain to counter show karein
+            resultCountSpan.style.visibility = "visible";
+            resultCountSpan.textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
             const searchQuery = document.getElementById("searchBox").value.trim();
             
@@ -803,16 +833,22 @@
             state.showFavorites = !state.showFavorites;
             const btn = document.getElementById("favToggle");
             state.currentPage = 1;
+            
             if (state.showFavorites) { 
-                btn.textContent = "👉 Show All Novels"; 
-                btn.style.background = "var(--secondary)"; 
+                // Button UI jab active ho
+                btn.innerHTML = "<span>⬅</span> Back to Library"; 
+                btn.style.background = "var(--primary)"; 
+                btn.style.borderColor = "var(--primary)";
                 btn.style.color = "white"; 
+                btn.style.boxShadow = "0 4px 15px rgba(79, 70, 229, 0.3)";
                 renderResults();
-            } 
-            else { 
-                btn.textContent = "Show Favorites \u2764\ufe0f"; 
+            } else { 
+                // Button UI jab normal ho
+                btn.innerHTML = "Show Favorites ❤️"; 
                 btn.style.background = "white"; 
+                btn.style.borderColor = "var(--secondary)";
                 btn.style.color = "var(--secondary)"; 
+                btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
                 fetchData(document.getElementById("searchBox").value.trim());
             }
         }
@@ -867,9 +903,15 @@
             toggleClearBtn(); 
             document.getElementById("suggestions").classList.remove("active"); 
             state.showFavorites = false; 
-            document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; 
-            document.getElementById("favToggle").style.background = "white"; 
-            document.getElementById("favToggle").style.color = "var(--secondary)"; 
+            
+            // Clear karne pe button ko reset karein
+            const btn = document.getElementById("favToggle");
+            btn.innerHTML = "Show Favorites ❤️"; 
+            btn.style.background = "white"; 
+            btn.style.borderColor = "var(--secondary)";
+            btn.style.color = "var(--secondary)"; 
+            btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+            
             state.currentPage = 1; 
             state.randomOffset = Math.floor(Math.random() * 75000); 
             fetchData(); 
