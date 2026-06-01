@@ -100,41 +100,41 @@
         .action-icon:hover { background: #db2777; transform: scale(1.05); }
         .action-icon.mic.listening { background: #10b981; color: white; animation: pulse 1.5s infinite; }
         
-        /* --- SEARCH BUTTON WITH PREMIUM SHINE ANIMATION --- */
+        /* --- SEARCH BUTTON WITH ANIMATED BORDER --- */
         .search-submit { 
+            position: relative;
             background: var(--primary); 
             color: white; 
             border-radius: 10px; 
             padding: 0 24px; 
             width: auto; 
             font-weight: 600; 
-            border: none;
             cursor: pointer;
-            position: relative;
-            overflow: hidden; /* Ye chamak ko button ke andar rakhega */
+            border: 2px solid transparent; /* Border ke liye transparent jagah */
+            background-clip: padding-box; /* Background ko border ke andar limit karega */
+            z-index: 1;
             transition: 0.2s;
         }
 
         .search-submit:hover { 
-            background: var(--primary-dark); 
             transform: scale(1.05); 
         }
 
-        /* Shine Animation Effect */
-        .search-submit::after {
+        /* Border Animation Element */
+        .search-submit::before {
             content: "";
             position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-            transform: skewX(-20deg);
-            animation: shineEffect 3s infinite;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(90deg, #ff007a, #4f46e5, #00d2ff, #ff007a);
+            background-size: 300% 300%;
+            z-index: -1;
+            border-radius: 12px; /* Button se 2px zyada taake curve theek baithay */
+            animation: borderMoving 3s linear infinite;
         }
 
-        @keyframes shineEffect {
-            0% { left: -100%; }
-            20% { left: 200%; } /* Chamak tezi se guzregi */
-            100% { left: 200%; } /* Phir thori der wait karegi */
+        @keyframes borderMoving {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
         }
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
