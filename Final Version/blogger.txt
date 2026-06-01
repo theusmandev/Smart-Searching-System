@@ -231,7 +231,7 @@
 
     <div class="search-container">
         <div class="search-box-wrapper">
-            <input aria-label="Search" id="searchBox" type="text" placeholder="Search novel title..." maxlength="80"/>
+            <input aria-label="Search" id="searchBox" maxlength="80" type="text" />
             <button aria-label="Voice Search" class="action-icon mic" onclick="startVoiceSearch()">🎙️</button>
             <button aria-label="Clear Search" class="action-icon" onclick="clearSearch()">✕</button>
             <button aria-label="Submit Search" class="action-icon search-submit" onclick="searchNovel()">Search</button>
@@ -259,8 +259,8 @@
 
     <script>
         const CONFIG = {
-            supabaseUrl: "https://qcpjvngjwbulkkpdxouq.supabase.co",
-            supabaseKey: "sb_publishable_dCy-rNGFvPGhzbfhLmhvyg_wKzxmeFF",
+            // Yahan par apna exact Vercel URL laga lein (Agar zarurat ho)
+            apiUrl: "https://smart-novel-api.vercel.app/api/search",
             googleScript: "https://script.google.com/macros/s/AKfycbzuJc2bicMhDKbrBhaSQj3tKakoihMosV9F2j-HIelvyOp4YIra0fr7V7glc7tLF-N1/exec",
             perPage: 21
         };
@@ -304,7 +304,7 @@
             document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
         }
 
-        // --- FETCH DATA FROM SUPABASE ---
+        // --- FETCH DATA FROM VERCEL API ---
         async function fetchData(query = "") {
             if (!navigator.onLine) { document.getElementById("results").innerHTML = "<p style='text-align:center'>Please check your internet.</p>"; return; }
             showSkeletonLoading();
@@ -314,35 +314,27 @@
             if (!query && !state.showFavorites) {
                 start += state.randomOffset;
             }
+
+            let url = `${CONFIG.apiUrl}?offset=${start}`;
             
-            const end = start + CONFIG.perPage - 1;
-            let url = `${CONFIG.supabaseUrl}/rest/v1/novels?select=*`;
-            if (query) { url += `&Titles=ilike.*${encodeURIComponent(query)}*`; }
+            if (query) {
+                url = `${CONFIG.apiUrl}?query=${encodeURIComponent(query)}`;
+            }
 
             try {
-                const response = await fetch(url, {
-                    headers: {
-                        "apikey": CONFIG.supabaseKey,
-                        "Authorization": `Bearer ${CONFIG.supabaseKey}`,
-                        "Range-Unit": "items",
-                        "Range": `${start}-${end}`,
-                        "Prefer": "count=exact"
-                    }
-                });
-
-                const data = await response.json();
-                const contentRange = response.headers.get("content-range");
-                state.totalResults = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
-                state.searchResults = data;
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                state.totalResults = result.total || 0;
+                state.searchResults = result.data || [];
                 
                 renderResults();
             } catch (err) {
-                console.error(err);
-                document.getElementById("results").innerHTML = "<p style='text-align:center'>Database Connection Error.</p>";
+                console.error("API Fetch Error:", err);
+                document.getElementById("results").innerHTML = "<p style='text-align:center'>Server Connection Error. Please try again later.</p>";
             }
         }
 
-        // UPDATE: Made this function async to wait for fetchData to finish
         function searchNovel() {
             const queryRaw = document.getElementById("searchBox").value.trim();
             const query = queryRaw.toLowerCase();
@@ -415,12 +407,10 @@
                 
                 state.currentPage = 1; 
                 
-                // UPDATE: wait for data to load so we know totalResults exactly
                 await fetchData(query === "all" ? "" : query); 
                 
                 // --- 4. NORMAL SEARCH (API Call Logging FIX) ---
                 if (query !== "" && query !== "all" && query !== state.lastLog) {
-                    // Yahan check hoga ke totalResults 0 hai ya nahi
                     logSearch(queryRaw, state.totalResults === 0);
                     state.lastLog = query;
                 }
@@ -436,7 +426,8 @@
             }
         }
 
-        function renderResults() {
+        
+      function renderResults() {
             const grid = document.getElementById("results");
             document.getElementById("recommendedSection").style.display = "none";
             grid.innerHTML = "";
@@ -451,11 +442,19 @@
                 return;
             }
 
-            const dataToRender = state.showFavorites 
-                ? state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage) 
-                : state.searchResults;
-            
             const searchQuery = document.getElementById("searchBox").value.trim();
+            
+            // --- FIX: Pagination Slicing Logic ---
+            let dataToRender;
+            if (state.showFavorites) {
+                dataToRender = state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage);
+            } else if (searchQuery !== "") {
+                // Agar user search kar raha hai, to saare results ko 21 ke hisab se slice kar do
+                dataToRender = state.searchResults.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage);
+            } else {
+                // Agar normal library dekh raha hai, to API ne pehle hi 21 bheje hain
+                dataToRender = state.searchResults;
+            }
 
             dataToRender.forEach(novel => {
                 const isFav = state.favorites.some(f => f.Titles === novel.Titles);
@@ -490,23 +489,18 @@
             if(window.scrollY > 300 && document.getElementById("novel-app-wrapper")) document.getElementById("novel-app-wrapper").scrollIntoView({behavior: 'smooth'});
         }
 
-        // UPDATE: Random recommendations from database
         async function showRecommendations() {
             const recSection = document.getElementById("recommendedSection");
             const recGrid = document.getElementById("recommendedGrid");
             recSection.style.display = "block"; recGrid.innerHTML = "";
             
             try {
-                // Generate random number for suggestions
                 const randomRecOffset = Math.floor(Math.random() * 75000);
-                const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/novels?select=*`, { 
-                    headers: { 
-                        "apikey": CONFIG.supabaseKey,
-                        "Range-Unit": "items",
-                        "Range": `${randomRecOffset}-${randomRecOffset + 9}` // Get 10 random items
-                    } 
-                });
-                const recNovels = await res.json();
+                const res = await fetch(`${CONFIG.apiUrl}?offset=${randomRecOffset}`);
+                const result = await res.json();
+                
+                // Get top 6 for recommendations
+                const recNovels = (result.data || []).slice(0, 6);
                 
                 recNovels.forEach(novel => {
                     const safeTitle = escapeHTML(novel.Titles);
@@ -520,9 +514,10 @@
                         </div>
                     </div>`;
                 });
-            } catch(e) { console.error(e) }
+            } catch(e) { console.error("Rec Error:", e) }
         }
 
+        // UPDATE: Suggestions calling Vercel API
         async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
             if (!query) { box.classList.remove("active"); return; }
@@ -530,13 +525,14 @@
             if (isRestricted) { box.classList.remove("active"); return; }
             
             try {
-                const url = `${CONFIG.supabaseUrl}/rest/v1/novels?Titles=ilike.*${encodeURIComponent(query)}*&select=Titles&limit=5`;
-                const res = await fetch(url, { headers: { "apikey": CONFIG.supabaseKey, "Authorization": `Bearer ${CONFIG.supabaseKey}` } });
-                const results = await res.json();
+                const res = await fetch(`${CONFIG.apiUrl}?query=${encodeURIComponent(query)}`);
+                const result = await res.json();
                 
-                if (results.length === 0) { box.classList.remove("active"); return; }
+                const suggestionsList = (result.data || []).slice(0, 5);
                 
-                box.innerHTML = results.map(r => {
+                if (suggestionsList.length === 0) { box.classList.remove("active"); return; }
+                
+                box.innerHTML = suggestionsList.map(r => {
                     const safeTitle = escapeHTML(r.Titles);
                     const jsSafeTitle = r.Titles.replace(/'/g, "\\'"); 
                     return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">${safeTitle}</div>`;
