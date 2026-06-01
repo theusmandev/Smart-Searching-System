@@ -1,6 +1,6 @@
 <div id="novel-app-wrapper">
 
-  <style>
+    <style>
         /* --- CORE VARIABLES & RESET --- */
         #novel-app-wrapper {
             --primary: #4f46e5;
@@ -71,7 +71,6 @@
             color: var(--text-main);
             min-width: 0;
             caret-color: var(--primary-dark);
-            /* Truncate nicely if too long */
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
@@ -93,8 +92,23 @@
             flex-shrink: 0;
         }
 
-        .action-icon:hover { background: #db2777; transform: scale(1.05); }
+        .action-icon:hover { background: #db2777; transform: scale(1.05); color: white;}
         .action-icon.mic.listening { background: #10b981; color: white; animation: pulse 1.5s infinite; }
+        
+        /* SMART CLEAR BUTTON HIDING LOGIC */
+        #clearBtn {
+            display: none; /* Khali box pe hide rakho */
+        }
+        #clearBtn.show-btn {
+            display: flex;
+            animation: popIn 0.2s ease-out forwards;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .search-submit { background: var(--primary); color: white; border-radius: 10px; padding: 0 24px; width: auto; font-weight: 600; cursor: pointer;}
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -152,7 +166,7 @@
         
         /* --- HIGHLIGHT STYLE --- */
         mark.highlight {
-            background-color: #fde047; /* Yellow */
+            background-color: #fde047;
             color: #111827;
             padding: 0 2px;
             border-radius: 4px;
@@ -202,10 +216,20 @@
         }
         .btn-go-back:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(219, 39, 119, 0.4); }
 
-        .skeleton { background: #e5e7eb; border-radius: 6px; animation: shimmer 1.5s infinite linear; }
+        /* --- PREMIUM SKELETON SHIMMER UPGRADE --- */
+        .skeleton { 
+            background: #e5e7eb; 
+            background: linear-gradient(90deg, #e5e7eb 25%, #f9fafb 50%, #e5e7eb 75%);
+            background-size: 400% 100%;
+            border-radius: 6px; 
+            animation: premiumShimmer 1.2s infinite linear; 
+        }
         .skeleton-text { height: 20px; width: 80%; margin-bottom: 10px; }
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
-        @keyframes shimmer { 0% { background: #e5e7eb; } 50% { background: #f3f4f6; } 100% { background: #e5e7eb; } }
+        @keyframes premiumShimmer { 
+            0% { background-position: 100% 0; } 
+            100% { background-position: -100% 0; } 
+        }
 
         .toast-container { 
             position: fixed; 
@@ -224,8 +248,8 @@
             #searchBox { 
                 padding: 6px 0px; 
                 height: 40px; 
-                font-size: 12px; /* Font thora chota kiya taake lamba text fit aye */
-                text-overflow: ellipsis; /* Agar zyada lamba ho to ajeeb tarah cut hone ke bajaye '...' show ho */
+                font-size: 12px; 
+                text-overflow: ellipsis; 
                 white-space: nowrap;
                 overflow: hidden;
             }
@@ -245,7 +269,8 @@
         <div class="search-box-wrapper">
             <input aria-label="Search" id="searchBox" maxlength="80" type="text" />
             <button aria-label="Voice Search" class="action-icon mic" onclick="startVoiceSearch()">🎙️</button>
-            <button aria-label="Clear Search" class="action-icon" onclick="clearSearch()">✕</button>
+            <!-- ID clearBtn added for Smart Logic -->
+            <button aria-label="Clear Search" class="action-icon" id="clearBtn" onclick="clearSearch()">✕</button>
             <button aria-label="Submit Search" class="action-icon search-submit" onclick="searchNovel()">Search</button>
         </div>
         <div class="suggestions-box" id="suggestions"></div>
@@ -293,21 +318,22 @@
 
         // --- TYPEWRITER PLACEHOLDER LOGIC ---
         const typingTexts = [
-                     "Konsa novel parhna hai aaj?...",
+            "Aaj kya parhne ka mood hai?...",
             "Boring din? Ek acha novel search karein!...",
-            "Apna pasandeeda novel search karein..."
-          
+            "Weekend plan? Ek zabardast novel parhein...",
+            "Romance, Suspense ya Mystery? Type karein...",
+            "Safar shuru karein, novel dhondein...",
+            "Apni pasand ka writer ya novel search karein..."
         ];
         let typeTextIdx = 0;
         let charIdx = 0;
         let isDeleting = false;
         let typewriterTimeout;
-        let isFocused = false; // Check agar user ne click kiya hai
+        let isFocused = false; 
 
         function typeWriterPlaceholder() {
             const searchInput = document.getElementById("searchBox");
             
-            // Agar user ne click kiya hai ya kuch type kiya hai to typewriter ruk jaye
             if (isFocused || searchInput.value.trim() !== "") {
                 clearTimeout(typewriterTimeout);
                 return;
@@ -326,18 +352,29 @@
             let typingSpeed = isDeleting ? 40 : 80;
 
             if (!isDeleting && charIdx === currentText.length) {
-                typingSpeed = 2000; // Likhne ke baad thori der rukay
+                typingSpeed = 2000; 
                 isDeleting = true;
             } else if (isDeleting && charIdx === 0) {
                 isDeleting = false;
                 typeTextIdx = (typeTextIdx + 1) % typingTexts.length;
-                typingSpeed = 500; // Naya shuru karne se pehle wait
+                typingSpeed = 500; 
             }
 
             typewriterTimeout = setTimeout(typeWriterPlaceholder, typingSpeed);
         }
 
-        (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); typeWriterPlaceholder(); })();
+        // --- SMART CLEAR BUTTON LOGIC ---
+        function toggleClearBtn() {
+            const btn = document.getElementById("clearBtn");
+            const box = document.getElementById("searchBox");
+            if(box.value.trim() !== "") {
+                btn.classList.add("show-btn");
+            } else {
+                btn.classList.remove("show-btn");
+            }
+        }
+
+        (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); typeWriterPlaceholder(); toggleClearBtn(); })();
 
         // --- SECURITY FUNCTION ---
         function escapeHTML(str) {
@@ -356,15 +393,17 @@
 
         function setupEventListeners() {
             const searchBox = document.getElementById("searchBox");
-            searchBox.addEventListener("input", debounce((e) => showSuggestions(e.target.value), 300));
+            searchBox.addEventListener("input", (e) => {
+                toggleClearBtn(); // Immediately handle the clear button UI
+                debounce(() => showSuggestions(e.target.value), 300)();
+            });
             searchBox.addEventListener("keydown", (e) => { if (e.key === "Enter") { document.getElementById("suggestions").classList.remove("active"); searchNovel(); } });
             document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
             
-            // --- FOCUS / BLUR EVENTS FOR TYPEWRITER ---
             searchBox.addEventListener("focus", () => {
                 isFocused = true;
                 clearTimeout(typewriterTimeout);
-                searchBox.setAttribute("placeholder", "Search novel title..."); // Click hone par simple text aa jaye
+                searchBox.setAttribute("placeholder", "Search novel title..."); 
             });
             
             searchBox.addEventListener("blur", () => {
@@ -372,7 +411,7 @@
                 if (searchBox.value.trim() === "") {
                     charIdx = 0;
                     isDeleting = false;
-                    typeWriterPlaceholder(); // Bahar click karne par wapis start ho jaye
+                    typeWriterPlaceholder(); 
                 }
             });
         }
@@ -421,7 +460,6 @@
             setTimeout(async () => {
                 const grid = document.getElementById("results");
 
-                // --- 1. SAFETY CHECK (Restricted Words) ---
                 const foundBadWord = RESTRICTED_KEYWORDS.find(word => query.includes(word));
                 if (foundBadWord) {
                     logSearch(queryRaw + " (Restricted)", true);
@@ -439,7 +477,6 @@
                     return;
                 }
 
-                // --- 2. URDU LANGUAGE CHECK ---
                 const urduPattern = /[\u0600-\u06FF\u0750-\u077F]/;
                 if (urduPattern.test(queryRaw)) {
                     logSearch(queryRaw + " (Urdu Input)", true);
@@ -457,7 +494,6 @@
                     return;
                 }
 
-                // --- 3. JUNK / SHORT SEARCH CHECK ---
                 if (query !== "" && query !== "all" && query.replace(/\s/g, '').length < 3) {
                     logSearch(queryRaw + " (Too Short)", true);
                     document.getElementById("resultCount").textContent = "? Unclear Search";
@@ -482,7 +518,6 @@
                 
                 await fetchData(query === "all" ? "" : query); 
                 
-                // --- 4. NORMAL SEARCH (API Call Logging FIX) ---
                 if (query !== "" && query !== "all" && query !== state.lastLog) {
                     logSearch(queryRaw, state.totalResults === 0);
                     state.lastLog = query;
@@ -517,7 +552,6 @@
 
             const searchQuery = document.getElementById("searchBox").value.trim();
             
-            // --- FIX: Pagination Slicing Logic ---
             let dataToRender;
             if (state.showFavorites) {
                 dataToRender = state.favorites.slice((state.currentPage - 1) * CONFIG.perPage, state.currentPage * CONFIG.perPage);
@@ -570,7 +604,6 @@
                 const res = await fetch(`${CONFIG.apiUrl}?offset=${randomRecOffset}`);
                 const result = await res.json();
                 
-                // Get top 6 for recommendations
                 const recNovels = (result.data || []).slice(0, 6);
                 
                 recNovels.forEach(novel => {
@@ -588,7 +621,6 @@
             } catch(e) { console.error("Rec Error:", e) }
         }
 
-        // UPDATE: Suggestions calling Vercel API
         async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
             if (!query) { box.classList.remove("active"); return; }
@@ -613,7 +645,11 @@
             } catch(e) {}
         }
 
-        function selectSuggestion(title) { document.getElementById("searchBox").value = title; searchNovel(); }
+        function selectSuggestion(title) { 
+            document.getElementById("searchBox").value = title; 
+            toggleClearBtn(); // Update clear button visibility
+            searchNovel(); 
+        }
 
         function toggleFav(title, link, btn) {
             const idx = state.favorites.findIndex(f => f.Titles === title);
@@ -687,6 +723,7 @@
 
         function clearSearch() { 
             document.getElementById("searchBox").value = ""; 
+            toggleClearBtn(); // Clear karte hi button chupa dein
             state.showFavorites = false; 
             document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; 
             document.getElementById("favToggle").style.background = "white"; 
@@ -704,7 +741,12 @@
             const r = new SR();
             r.onstart = () => { document.getElementById("searchBox").placeholder = "Listening..."; document.querySelector(".mic").classList.add("listening"); };
             r.onend = () => { document.getElementById("searchBox").placeholder = "Search novel title..."; document.querySelector(".mic").classList.remove("listening"); };
-            r.onresult = (e) => { const transcript = e.results[0][0].transcript; document.getElementById("searchBox").value = transcript; searchNovel(); };
+            r.onresult = (e) => { 
+                const transcript = e.results[0][0].transcript; 
+                document.getElementById("searchBox").value = transcript; 
+                toggleClearBtn(); // Voice aate hi button show kar dein
+                searchNovel(); 
+            };
             r.start();
         }
 
