@@ -386,11 +386,13 @@
         let isDeleting = false;
         let typewriterTimeout;
         let isFocused = false; 
+        let isListening = false; // Naya variable mic status ke liye
 
         function typeWriterPlaceholder() {
             const searchInput = document.getElementById("searchBox");
             
-            if (isFocused || searchInput.value.trim() !== "") {
+            // Agar box pe click ho, ya kuch likha ho, ya mic chal raha ho to typewriter ruk jaye
+            if (isFocused || searchInput.value.trim() !== "" || isListening) {
                 clearTimeout(typewriterTimeout);
                 return;
             }
@@ -498,7 +500,7 @@
             
             searchBox.addEventListener("blur", () => {
                 isFocused = false;
-                if (searchBox.value.trim() === "") {
+                if (searchBox.value.trim() === "" && !isListening) {
                     charIdx = 0;
                     isDeleting = false;
                     typeWriterPlaceholder(); 
@@ -875,8 +877,24 @@
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast("Voice search not supported"); return; }
             const r = new SR();
-            r.onstart = () => { document.getElementById("searchBox").placeholder = "Listening..."; document.querySelector(".mic").classList.add("listening"); };
-            r.onend = () => { document.getElementById("searchBox").placeholder = "Search novel title..."; document.querySelector(".mic").classList.remove("listening"); };
+            r.onstart = () => { 
+                isListening = true; // Mic ON
+                clearTimeout(typewriterTimeout); // Typewriter rok do
+                document.getElementById("searchBox").placeholder = "Listening..."; 
+                document.querySelector(".mic").classList.add("listening"); 
+            };
+            r.onend = () => { 
+                isListening = false; // Mic OFF
+                document.getElementById("searchBox").placeholder = "Search novel title..."; 
+                document.querySelector(".mic").classList.remove("listening"); 
+                
+                // Agar kuch na likha jaye to typewriter wapis start kar do
+                if (document.getElementById("searchBox").value.trim() === "" && !isFocused) {
+                    charIdx = 0;
+                    isDeleting = false;
+                    typeWriterPlaceholder();
+                }
+            };
             r.onresult = (e) => { 
                 const transcript = e.results[0][0].transcript; 
                 document.getElementById("searchBox").value = transcript; 
