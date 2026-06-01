@@ -105,7 +105,7 @@
         
         /* SMART CLEAR BUTTON HIDING LOGIC */
         #clearBtn {
-            display: none; /* Khali box pe hide rakho */
+            display: none; 
         }
         #clearBtn.show-btn {
             display: flex;
@@ -121,15 +121,64 @@
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-        /* --- SUGGESTIONS --- */
+        /* --- SUGGESTIONS (IMPROVED UI) --- */
         .suggestions-box {
-            position: absolute; top: 105%; left: 15px; right: 15px;
-            background: white; border-radius: 16px; box-shadow: var(--shadow-lg);
-            overflow: hidden; display: none; max-height: 250px; overflow-y: auto;
+            position: absolute; 
+            top: calc(100% + 8px); /* Gap from search bar */
+            left: 0; right: 0;
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden; 
+            display: none; 
+            max-height: 300px; 
+            overflow-y: auto;
+            transform: translateY(-10px);
+            opacity: 0;
+            transition: all 0.2s ease;
         }
-        .suggestions-box.active { display: block; }
-        .suggestion-item { padding: 12px 20px; border-bottom: 1px solid #f3f4f6; cursor: pointer; font-size: 1rem; }
-        .suggestion-item:hover { background: #f9fafb; color: var(--primary); font-weight: 500; }
+        
+        .suggestions-box.active { 
+            display: block; 
+            animation: slideDown 0.2s ease-out forwards;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .suggestion-item { 
+            padding: 14px 20px; 
+            border-bottom: 1px solid #f3f4f6; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Space between icon and text */
+            color: #374151;
+            transition: background 0.2s;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        
+        /* Highlight item on hover OR when selected via keyboard */
+        .suggestion-item:hover, .suggestion-item.selected { 
+            background: #f8fafc; 
+            color: var(--primary); 
+        }
+
+        .suggestion-icon {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .suggestion-item:hover .suggestion-icon, .suggestion-item.selected .suggestion-icon {
+            color: var(--primary);
+        }
 
         /* --- MAIN LAYOUT --- */
         .app-main { flex: 1; padding: 20px; width: 100%; max-width: 1200px; margin: 0 auto; }
@@ -265,6 +314,7 @@
             .search-submit { padding: 0 10px; font-size: 0.8rem; height: 28px; border-radius: 5px; width: auto; margin-left: 2px; }
             .novel-title { font-size: 0.95rem; -webkit-line-clamp: 3; line-height: 1.3; margin-bottom: 10px; min-height: 2.5rem; }
             .novel-card { padding: 15px; min-height: auto; }
+            .suggestion-item { padding: 10px 15px; font-size: 0.9rem; gap: 8px; }
         }
     </style>
 
@@ -275,7 +325,7 @@
 
     <div class="search-container">
         <div class="search-box-wrapper">
-            <input aria-label="Search" id="searchBox" maxlength="80" type="text" />
+            <input aria-label="Search" id="searchBox" maxlength="80" type="text" autocomplete="off" />
             <button aria-label="Clear Search" class="action-icon" id="clearBtn" onclick="clearSearch()">✕</button>
             <button aria-label="Voice Search" class="action-icon mic" onclick="startVoiceSearch()">🎙️</button>
             <button aria-label="Submit Search" class="action-icon search-submit" onclick="searchNovel()">Search</button>
@@ -381,6 +431,9 @@
             }
         }
 
+        // --- KEYBOARD NAVIGATION STATE ---
+        let currentFocus = -1;
+
         (function init() { showSkeletonLoading(); fetchData(); setupEventListeners(); typeWriterPlaceholder(); toggleClearBtn(); })();
 
         // --- SECURITY FUNCTION ---
@@ -400,12 +453,45 @@
 
         function setupEventListeners() {
             const searchBox = document.getElementById("searchBox");
+            
             searchBox.addEventListener("input", (e) => {
-                toggleClearBtn(); // Immediately handle the clear button UI
+                toggleClearBtn(); 
                 debounce(() => showSuggestions(e.target.value), 300)();
             });
-            searchBox.addEventListener("keydown", (e) => { if (e.key === "Enter") { document.getElementById("suggestions").classList.remove("active"); searchNovel(); } });
-            document.addEventListener("click", (e) => { if (!document.querySelector(".search-container").contains(e.target)) { document.getElementById("suggestions").classList.remove("active"); } });
+            
+            // KEYBOARD NAVIGATION LOGIC
+            searchBox.addEventListener("keydown", (e) => { 
+                const box = document.getElementById("suggestions");
+                let items = box.getElementsByClassName("suggestion-item");
+                
+                if (e.key === "ArrowDown") {
+                    currentFocus++;
+                    addActive(items);
+                    e.preventDefault(); // Prevents cursor from moving in input
+                } else if (e.key === "ArrowUp") {
+                    currentFocus--;
+                    addActive(items);
+                    e.preventDefault();
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (currentFocus > -1 && box.classList.contains("active")) {
+                        // Agar user ne arrow se kuch select kiya hai to us par click karo
+                        if (items[currentFocus]) {
+                            items[currentFocus].click();
+                        }
+                    } else {
+                        // Agar keyboard se select nahi kiya to normal search
+                        box.classList.remove("active"); 
+                        searchNovel(); 
+                    }
+                }
+            });
+
+            document.addEventListener("click", (e) => { 
+                if (!document.querySelector(".search-container").contains(e.target)) { 
+                    document.getElementById("suggestions").classList.remove("active"); 
+                } 
+            });
             
             searchBox.addEventListener("focus", () => {
                 isFocused = true;
@@ -421,6 +507,29 @@
                     typeWriterPlaceholder(); 
                 }
             });
+        }
+
+        // Functions for highlighting arrow key selections
+        function addActive(items) {
+            if (!items) return false;
+            removeActive(items);
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (items.length - 1);
+            
+            // "No matching novel found" wale par highlight nahi karna
+            if(items[currentFocus].classList.contains('no-hover')) {
+                currentFocus = -1;
+                return;
+            }
+            
+            items[currentFocus].classList.add("selected");
+            items[currentFocus].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function removeActive(items) {
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove("selected");
+            }
         }
 
         // --- FETCH DATA FROM VERCEL API ---
@@ -628,8 +737,11 @@
             } catch(e) { console.error("Rec Error:", e) }
         }
 
+        // --- UPDATED SUGGESTIONS LOGIC (UI, ICON, HIGHLIGHT) ---
         async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
+            currentFocus = -1; // Reset keyboard focus every time new letters are typed
+
             if (!query) { box.classList.remove("active"); return; }
             const isRestricted = RESTRICTED_KEYWORDS.some(word => query.toLowerCase().includes(word));
             if (isRestricted) { box.classList.remove("active"); return; }
@@ -640,12 +752,28 @@
                 
                 const suggestionsList = (result.data || []).slice(0, 5);
                 
-                if (suggestionsList.length === 0) { box.classList.remove("active"); return; }
+                if (suggestionsList.length === 0) { 
+                    box.innerHTML = `<div class="suggestion-item no-hover" style="color: #ef4444; justify-content: center; cursor: default;">No matching novel found</div>`;
+                    box.classList.add("active");
+                    return; 
+                }
                 
                 box.innerHTML = suggestionsList.map(r => {
                     const safeTitle = escapeHTML(r.Titles);
                     const jsSafeTitle = r.Titles.replace(/'/g, "\\'"); 
-                    return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">${safeTitle}</div>`;
+                    
+                    // Highlight matching text bold
+                    let highlightedTitle = safeTitle;
+                    try {
+                        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${safeQuery})`, 'gi');
+                        highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--primary); font-weight: 800;">$1</span>');
+                    } catch(e) {}
+
+                    return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">
+                                <span class="suggestion-icon">🔍</span>
+                                <span>${highlightedTitle}</span>
+                            </div>`;
                 }).join("");
                 
                 box.classList.add("active");
@@ -654,7 +782,7 @@
 
         function selectSuggestion(title) { 
             document.getElementById("searchBox").value = title; 
-            toggleClearBtn(); // Update clear button visibility
+            toggleClearBtn(); 
             searchNovel(); 
         }
 
@@ -730,7 +858,7 @@
 
         function clearSearch() { 
             document.getElementById("searchBox").value = ""; 
-            toggleClearBtn(); // Clear karte hi button chupa dein
+            toggleClearBtn(); 
             state.showFavorites = false; 
             document.getElementById("favToggle").textContent = "Show Favorites \u2764\ufe0f"; 
             document.getElementById("favToggle").style.background = "white"; 
@@ -751,7 +879,7 @@
             r.onresult = (e) => { 
                 const transcript = e.results[0][0].transcript; 
                 document.getElementById("searchBox").value = transcript; 
-                toggleClearBtn(); // Voice aate hi button show kar dein
+                toggleClearBtn(); 
                 searchNovel(); 
             };
             r.start();
