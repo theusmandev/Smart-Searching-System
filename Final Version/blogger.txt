@@ -387,9 +387,6 @@
         const typingTexts = [
             "Aaj kya parhne ka mood hai?...",
             "Boring din? Ek acha novel search karein!...",
-            "Weekend plan? Ek zabardast novel parhein...",
-            "Romance, Suspense ya Mystery? Type karein...",
-            "Safar shuru karein, novel dhondein...",
             "Apni pasand ka writer ya novel search karein..."
         ];
         let typeTextIdx = 0;
@@ -974,11 +971,22 @@
             return id;
         }
 
-        function logSearch(q, n) { 
-            const userId = getUserId();
-            const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
-            const params = new URLSearchParams({ search: q, timestamp: new Date().toISOString(), noResults: n, device: deviceType, userId: userId });
-            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
-        }
+  function logSearch(q, n) { 
+    const userId = getUserId();
+    const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+    
+    // 🚀 MAGIC FIX: true/false ko explicitly "Yes" ya "No" string mein badal diya
+    const resultStatus = n ? "Yes" : "No";
+
+    const params = new URLSearchParams({ 
+        search: q, 
+        timestamp: new Date().toISOString(), 
+        noResults: resultStatus, // Ab yahan direct Yes ya No jayega
+        device: deviceType, 
+        userId: userId 
+    });
+    
+    fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
+}
     </script>
 </div>
