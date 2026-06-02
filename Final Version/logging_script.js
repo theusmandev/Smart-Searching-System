@@ -13,7 +13,10 @@ function doPost(e) {
     var timestamp = params.timestamp || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
     var device = params.device || "N/A";
     var userId = params.userId || "N/A";
-    var noResults = params.noResults === "true";
+    
+    // 🚀 MAGIC FIX: Ab yeh "true" aur "Yes" dono ko theek se parhega
+    var rawNoResults = params.noResults;
+    var noResults = (rawNoResults === "true" || rawNoResults === "Yes" || rawNoResults === true);
 
     var row = [timestamp, search, device, userId, noResults ? "Yes" : "No"];
     sheet.appendRow(row);
