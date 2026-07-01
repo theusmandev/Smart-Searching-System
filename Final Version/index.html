@@ -9,76 +9,136 @@
 <div id="novel-app-wrapper">
 
     <style>
-        /* --- CORE VARIABLES & RESET --- */
+        /* =====================================================
+           SMART NOVEL BANK — "Inked Pages" design system
+           Palette: aged paper, deep maroon ink, warm gold leaf
+           Type: serif display (literary/print feel) + clean sans body
+        ===================================================== */
         #novel-app-wrapper {
-            --primary: #4f46e5;
-            --primary-dark: #db2777;
-            --secondary: #ec4899;
-            --bg-body: #f3f4f6;
-            --bg-card: #ffffff;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius: 12px;
-            
-            font-family: 'Arial', sans-serif;
-            background-color: var(--bg-body);
+            --ink: #5c1a2b;            /* deep maroon — primary */
+            --ink-dark: #3d0f1c;       /* darker maroon for hover/press */
+            --gold: #c9952c;          /* gold leaf accent */
+            --gold-soft: #e9c878;
+            --paper: #f6efe2;          /* warm aged-paper background */
+            --paper-card: #fffaf0;     /* card surface, slightly lighter */
+            --paper-line: #e7dcc4;     /* hairline borders */
+            --text-main: #2b1d14;
+            --text-sub: #7a6a55;
+            --success: #2f7d5a;
+            --danger: #b3382c;
+            --shadow: 0 3px 10px -2px rgba(61, 15, 28, 0.12), 0 1px 3px rgba(61,15,28,0.08);
+            --shadow-lg: 0 16px 32px -8px rgba(61, 15, 28, 0.22), 0 4px 10px -4px rgba(61,15,28,0.12);
+            --radius: 14px;
+
+            font-family: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', serif;
+            background: var(--paper);
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(92,26,43,0.05) 1px, transparent 0);
+            background-size: 22px 22px;
             color: var(--text-main);
             display: flex;
             flex-direction: column;
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
             position: relative;
         }
 
         #novel-app-wrapper * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        #novel-app-wrapper button, #novel-app-wrapper input { font-family: 'Segoe UI', system-ui, sans-serif; }
 
         /* --- HEADER --- */
         .app-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 30px 20px 50px;
+            background:
+                linear-gradient(160deg, var(--ink) 0%, var(--ink-dark) 100%);
+            color: #fff;
+            padding: 38px 20px 64px;
             text-align: center;
-            border-bottom-left-radius: 15px;
-            border-bottom-right-radius: 15px;
+            border-bottom-left-radius: 28px;
+            border-bottom-right-radius: 28px;
             margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .app-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; color: white; margin-top: 0; }
-        .subtitle { opacity: 0.9; font-size: 1rem; max-width: 500px; margin: 0 auto; color: #eee; }
+        /* signature: gold "open book" ornament behind the title */
+        .app-header::before {
+            content: "";
+            position: absolute;
+            top: -40px; left: 50%;
+            transform: translateX(-50%);
+            width: 340px; height: 340px;
+            background: radial-gradient(circle, rgba(201,149,44,0.28) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .header-ornament {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .header-ornament svg { width: 46px; height: 46px; }
+
+        .app-header h1 {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 2.15rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+            color: #fdf6e3;
+            margin-top: 0;
+            position: relative; z-index: 1;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+        }
+        .subtitle {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            opacity: 0.85;
+            font-size: 0.95rem;
+            max-width: 480px;
+            margin: 0 auto;
+            color: #f1e3c8;
+            position: relative; z-index: 1;
+        }
+
+        /* thin gold rule under subtitle, literary "divider" motif */
+        .header-divider {
+            width: 70px; height: 2px;
+            margin: 16px auto 0;
+            background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+            position: relative; z-index: 1;
+        }
 
         /* --- SEARCH BAR --- */
         .search-container {
             position: relative;
             z-index: 100;
-            margin: -45px auto 20px;
-            width: 96%;
+            margin: -38px auto 22px;
+            width: 94%;
             max-width: 800px;
         }
 
         .search-box-wrapper {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 8px;
-            border-radius: 10px;
+            background: var(--paper-card);
+            padding: 7px;
+            border-radius: 12px;
             box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            border: 1px solid rgba(255,255,255,0.5);
+            border: 1px solid var(--paper-line);
         }
 
         #searchBox {
             flex: 1;
             border: none;
             background: transparent;
-            padding: 12px 20px;
+            padding: 13px 18px;
             font-size: 1rem;
             outline: none;
             color: var(--text-main);
             min-width: 0;
-            caret-color: var(--primary-dark);
+            caret-color: var(--ink);
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
@@ -88,130 +148,140 @@
             width: 40px;
             height: 40px;
             border: none;
-            background: #f3f4f6;
-            border-radius: 20%;
+            background: var(--paper);
+            border-radius: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: 5px;
             transition: 0.2s;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             flex-shrink: 0;
+            color: var(--ink);
         }
 
-        .action-icon:hover { background: #db2777; transform: scale(1.05); color: white;}
-        .action-icon.mic.listening { background: #10b981; color: white; animation: pulse 1.5s infinite; }
-        
-        /* SMART CLEAR BUTTON HIDING LOGIC */
-        #clearBtn {
-            display: none; 
-        }
-        #clearBtn.show-btn {
-            display: flex;
-            animation: popIn 0.2s ease-out forwards;
-        }
-        
+        .action-icon:hover { background: var(--ink); color: #fff; transform: translateY(-1px); }
+        .action-icon.mic.listening { background: var(--success); color: white; animation: pulse 1.5s infinite; }
+
+        #clearBtn { display: none; }
+        #clearBtn.show-btn { display: flex; animation: popIn 0.2s ease-out forwards; }
+
         @keyframes popIn {
             0% { transform: scale(0.5); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .search-submit { background: var(--primary); color: white; border-radius: 10px; padding: 0 24px; width: auto; font-weight: 600; cursor: pointer;}
-        
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .search-submit {
+            background: var(--ink);
+            color: white;
+            border-radius: 9px;
+            padding: 0 22px;
+            width: auto;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+        }
+        .search-submit:hover { background: var(--ink-dark); }
 
-        /* --- SUGGESTIONS (IMPROVED UI) --- */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(47,125,90,0.6); } 70% { box-shadow: 0 0 0 10px rgba(47,125,90,0); } 100% { box-shadow: 0 0 0 0 rgba(47,125,90,0); } }
+
+        /* --- SUGGESTIONS --- */
         .suggestions-box {
-            position: absolute; 
-            top: calc(100% + 8px); 
+            position: absolute;
+            top: calc(100% + 8px);
             left: 0; right: 0;
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            overflow: hidden; 
-            display: none; 
-            max-height: 300px; 
+            background: var(--paper-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--paper-line);
+            overflow: hidden;
+            display: none;
+            max-height: 300px;
             overflow-y: auto;
             transform: translateY(-10px);
             opacity: 0;
             transition: all 0.2s ease;
         }
-        
-        .suggestions-box.active { 
-            display: block; 
-            animation: slideDown 0.2s ease-out forwards;
-        }
-        
+
+        .suggestions-box.active { display: block; animation: slideDown 0.2s ease-out forwards; }
+
         @keyframes slideDown {
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .suggestion-item { 
-            padding: 14px 20px; 
-            border-bottom: 1px solid #f3f4f6; 
-            cursor: pointer; 
-            font-size: 1rem; 
+        .suggestion-item {
+            padding: 13px 20px;
+            border-bottom: 1px solid var(--paper-line);
+            cursor: pointer;
+            font-size: 0.97rem;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex;
             align-items: center;
-            gap: 12px; 
-            color: #374151;
-            transition: background 0.2s;
+            gap: 12px;
+            color: var(--text-main);
+            transition: background 0.15s;
         }
         .suggestion-item:last-child { border-bottom: none; }
-        
-        .suggestion-item:hover, .suggestion-item.selected { 
-            background: #f8fafc; 
-            color: var(--primary); 
-        }
 
-        .suggestion-icon {
-            color: #9ca3af;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
+        .suggestion-item:hover, .suggestion-item.selected { background: #f6e9c9; color: var(--ink-dark); }
 
-        .suggestion-item:hover .suggestion-icon, .suggestion-item.selected .suggestion-icon {
-            color: var(--primary);
-        }
+        .suggestion-icon { color: var(--text-sub); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .suggestion-item:hover .suggestion-icon, .suggestion-item.selected .suggestion-icon { color: var(--ink); }
 
         /* --- MAIN LAYOUT --- */
-        .app-main { flex: 1; padding: 20px; width: 100%; max-width: 1200px; margin: 0 auto; }
-        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: var(--text-sub); flex-wrap: wrap; gap: 10px; }
-
-        /* --- GRID CONTAINER --- */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+        .app-main { flex: 1; padding: 18px 20px 30px; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .controls {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        #resultCount {
+            color: var(--text-sub);
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
-        /* --- CARD DESIGN --- */
+        /* --- GRID --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 18px;
+        }
+
+        /* --- CARD: "book" treatment with spine accent --- */
         .novel-card {
-            background: var(--bg-card);
+            background: var(--paper-card);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 20px 20px 18px 18px;
             box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
-            border: 1px solid #e5e7eb;
-            min-height: 180px;
+            border: 1px solid var(--paper-line);
+            border-left: 5px solid var(--gold-soft);
+            min-height: 170px;
+            position: relative;
         }
 
-        .novel-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        .novel-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--paper-line);
+            border-left-color: var(--ink);
+        }
 
         .novel-title {
-            font-size: 1.15rem;
-            font-weight: 600;
+            font-family: 'Georgia', serif;
+            font-size: 1.12rem;
+            font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -219,126 +289,130 @@
             overflow: hidden;
             margin-top: 0;
         }
-        
-        /* --- HIGHLIGHT STYLE --- */
+
         mark.highlight {
-            background-color: #fde047;
-            color: #111827;
+            background-color: var(--gold-soft);
+            color: var(--ink-dark);
             padding: 0 2px;
             border-radius: 4px;
             font-weight: 700;
         }
 
-        .card-actions { display: flex; align-items: center; gap: 10px; margin-top: auto; width: 100%; }
-        .btn { border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .card-actions {
+            display: flex; align-items: center; gap: 8px; margin-top: auto; width: 100%;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .btn { border: none; border-radius: 9px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 
         .btn-download {
-            flex: 1; background: var(--primary); color: white !important; text-decoration: none; padding: 12px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 8px;
+            flex: 1; background: var(--ink); color: white !important; text-decoration: none;
+            padding: 12px 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 8px;
+            letter-spacing: 0.2px;
         }
-        .btn-download:hover { background: var(--primary-dark); }
-        .btn-download span { font-size: 1.1rem; }
+        .btn-download:hover { background: var(--ink-dark); transform: translateY(-1px); }
+        .btn-download span { font-size: 1.05rem; }
 
-        .btn-secondary { background: #f3f4f6; color: #6b7280; width: 48px; height: 48px; padding: 0; flex-shrink: 0; font-size: 1.2rem; }
-        .btn-secondary:hover { background: #e5e7eb; color: var(--primary); }
-        .btn-fav.active { color: #ef4444; background: #fee2e2; }
+        .btn-secondary { background: var(--paper); color: var(--text-sub); width: 46px; height: 46px; padding: 0; flex-shrink: 0; font-size: 1.15rem; border: 1px solid var(--paper-line); }
+        .btn-secondary:hover { background: var(--gold-soft); color: var(--ink-dark); border-color: var(--gold-soft); }
+        .btn-fav.active { color: var(--danger); background: #fbe2dd; border-color: #f0c4ba; }
 
         /* --- PAGINATION --- */
-        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; flex-wrap: wrap; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 38px; flex-wrap: wrap; font-family: 'Segoe UI', system-ui, sans-serif; }
 
         .page-btn {
             display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px;
-            border-radius: 8px; border: 2px solid #e5e7eb; background: white; color: var(--text-main);
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; padding: 0 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border-radius: 9px; border: 1px solid var(--paper-line); background: var(--paper-card); color: var(--text-main);
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; padding: 0 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
 
-        .page-btn:hover:not(:disabled):not(.active) { border-color: var(--primary); color: var(--primary); background: #f9fafb; }
-        .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
-        
-        .page-btn.nav-btn { min-width: auto; padding: 0 24px; font-weight: 700; color: var(--primary); border-color: var(--primary); }
-        .page-btn.nav-btn:hover:not(:disabled) { background: var(--primary); color: white; }
-        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #e5e7eb !important; color: var(--text-sub) !important; background: white !important; box-shadow: none; }
+        .page-btn:hover:not(:disabled):not(.active) { border-color: var(--ink); color: var(--ink); background: #fbf3e2; }
+        .page-btn.active { background: var(--ink); color: white; border-color: var(--ink); box-shadow: 0 4px 12px rgba(92,26,43,0.3); }
 
-        .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; font-size: 1.5rem; color: var(--text-sub); padding-bottom: 8px; }
+        .page-btn.nav-btn { min-width: auto; padding: 0 22px; font-weight: 700; color: var(--ink); border-color: var(--ink); background: var(--paper-card); }
+        .page-btn.nav-btn:hover:not(:disabled) { background: var(--ink); color: white; }
+        .page-btn:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--paper-line) !important; color: var(--text-sub) !important; background: var(--paper-card) !important; box-shadow: none; }
 
-        /* --- MISC --- */
-        
-        /* Updated Favorites Button UI */
-        .fav-section-btn { 
-            display: inline-flex; 
+        .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.4rem; color: var(--text-sub); padding-bottom: 6px; }
+
+        /* --- FAVORITES BUTTON --- */
+        .fav-section-btn {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin: 0; 
-            background: white; 
-            border: 2px solid var(--secondary); 
-            color: var(--secondary); 
-            padding: 10px 24px; 
-            border-radius: 10px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
+            margin: 0;
+            background: var(--paper-card);
+            border: 1.5px solid var(--ink);
+            color: var(--ink);
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .fav-section-btn:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(236, 72, 153, 0.2); 
-        }
+        .fav-section-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(92,26,43,0.18); }
 
         .btn-go-back {
-            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); display: inline-flex; align-items: center; gap: 8px;
+            background: var(--ink); color: white; border: none; padding: 12px 22px; border-radius: 10px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 15px; transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(92,26,43,0.25); display: inline-flex; align-items: center; gap: 8px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
-        .btn-go-back:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(219, 39, 119, 0.4); }
+        .btn-go-back:hover { background: var(--ink-dark); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(92,26,43,0.35); }
 
-        /* --- PREMIUM SKELETON SHIMMER UPGRADE --- */
-        .skeleton { 
-            background: #e5e7eb; 
-            background: linear-gradient(90deg, #e5e7eb 25%, #f9fafb 50%, #e5e7eb 75%);
+        /* --- SKELETON --- */
+        .skeleton {
+            background: linear-gradient(90deg, #ece1cc 25%, #f8f1e0 50%, #ece1cc 75%);
             background-size: 400% 100%;
-            border-radius: 6px; 
-            animation: premiumShimmer 1.2s infinite linear; 
+            border-radius: 6px;
+            animation: premiumShimmer 1.2s infinite linear;
         }
-        .skeleton-text { height: 20px; width: 80%; margin-bottom: 10px; }
+        .skeleton-text { height: 18px; width: 80%; margin-bottom: 10px; }
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
-        @keyframes premiumShimmer { 
-            0% { background-position: 100% 0; } 
-            100% { background-position: -100% 0; } 
+        @keyframes premiumShimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+        .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
+        .toast {
+            background: var(--ink-dark); color: #fdf6e3; padding: 12px 22px; border-radius: 50px; margin-top: 10px;
+            opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg);
+            font-size: 0.88rem; font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap; }
+
+        /* empty state heading should use display font for warmth */
+        .app-main h3 { font-family: 'Georgia', serif; }
+
+        /* --- MOBILE --- */
+        @media (max-width: 600px) {
+            .app-header { padding: 30px 16px 56px; }
+            .app-header h1 { font-size: 1.55rem; }
+            .search-box-wrapper { padding: 3px 3px 3px 10px; gap: 2px; }
+            #searchBox { padding: 6px 0px; height: 40px; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+            .action-icon { width: 28px; height: 28px; font-size: 0.8rem; margin-left: 5px; }
+            .search-submit { padding: 0 10px; font-size: 0.8rem; height: 28px; border-radius: 6px; width: auto; margin-left: 2px; }
+            .novel-title { font-size: 0.93rem; -webkit-line-clamp: 3; line-height: 1.3; margin-bottom: 10px; min-height: 2.5rem; }
+            .novel-card { padding: 14px; min-height: auto; }
+            .suggestion-item { padding: 10px 15px; font-size: 0.88rem; gap: 8px; }
         }
 
-        .toast-container { 
-            position: fixed; 
-            bottom: 80px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            z-index: 9999; 
-            pointer-events: none; 
-        }
-        .toast { background: #1f2937; color: white; padding: 12px 24px; border-radius: 50px; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg); font-size: 0.9rem; }
-        .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap;}
-        
-        /* --- MOBILE VIEW UPDATES --- */
-        @media (max-width: 600px) {
-            .search-box-wrapper { padding: 3px 3px 3px 10px; gap: 2px; }
-            #searchBox { 
-                padding: 6px 0px; 
-                height: 40px; 
-                font-size: 12px; 
-                text-overflow: ellipsis; 
-                white-space: nowrap;
-                overflow: hidden;
-            }
-            .action-icon { width: 28px; height: 28px; font-size: 0.8rem; margin-left: 5px; }
-            .search-submit { padding: 0 10px; font-size: 0.8rem; height: 28px; border-radius: 5px; width: auto; margin-left: 2px; }
-            .novel-title { font-size: 0.95rem; -webkit-line-clamp: 3; line-height: 1.3; margin-bottom: 10px; min-height: 2.5rem; }
-            .novel-card { padding: 15px; min-height: auto; }
-            .suggestion-item { padding: 10px 15px; font-size: 0.9rem; gap: 8px; }
+        /* reduced motion respect */
+        @media (prefers-reduced-motion: reduce) {
+            #novel-app-wrapper * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
     </style>
 
     <div class="app-header">
-        <h1><i>Smart Novel Bank</i></h1>
+        <div class="header-ornament">
+            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke-linejoin="round" stroke-width="2" stroke="#e9c878">
+                <path d="M24 10V37" stroke-width="2" stroke="#e9c878">
+            </path></path></svg>
+        </div>
+        <h1>Smart Novel Bank</h1>
         <p class="subtitle">Search, discover, and download your favorite Urdu novels in PDF format.</p>
+        <div class="header-divider"></div>
     </div>
 
     <div class="search-container">
@@ -358,9 +432,9 @@
         </div>
 
         <div class="grid-container" id="results"></div>
-        
+
         <div id="recommendedSection" style="display: none; margin-top: 30px;">
-            <h3 style="margin-bottom: 30px; text-align: center;">You Might Like</h3>
+            <h3 style="color: var(--ink); font-style: italic; margin-bottom: 26px; text-align: center;">You Might Like</h3>
             <div class="grid-container" id="recommendedGrid"></div>
         </div>
 
@@ -393,9 +467,9 @@
 
         // --- TYPEWRITER PLACEHOLDER LOGIC ---
         const typingTexts = [
-            "Aaj kya parhne ka mood hai?...",
+            "Konsa novel parhna hai aaj?...",
             "Boring din? Ek acha novel search karein!...",
-            "Apni pasand ka writer ya novel search karein..."
+            "Apna pasandeeda novel search karein..."
         ];
         let typeTextIdx = 0;
         let charIdx = 0;
@@ -594,12 +668,12 @@
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fee2e2; border-radius: 12px; border: 1px solid #ef4444;">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fbe2dd; border-radius: 14px; border: 1px solid #e0a394;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Search Restricted</h3><br>
-                        <p style="color: #7f1d1d; font-size: 1.1rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
-                        <p style="color: #991b1b; font-size: 0.95rem;">Please search for decent Urdu novels only.</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #dc2626; margin-top: 25px;">Clear Search</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #8c2a1e; font-weight: 700; font-style: italic;">Search Restricted</h3><br>
+                        <p style="color: #7f1d1d; font-size: 1.05rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
+                        <p style="color: #991b1b; font-size: 0.92rem;">Please search for decent Urdu novels only.</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #b3382c;">Clear Search</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -612,12 +686,12 @@
                     document.getElementById("resultCount").textContent = "🔤 English Required";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eff6ff; border-radius: 12px; border: 1px solid #3b82f6;">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eef2fb; border-radius: 14px; border: 1px solid #a9bce4;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #1d4ed8; font-weight: 700;">Please Search in English</h3><br>
-                        <p style="color: #1e40af; font-size: 1.1rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
-                        <p style="color: #1e3a8a; font-size: 0.95rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #2563eb;">Try Again</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #2b3f73; font-weight: 700; font-style: italic;">Please Search in English</h3><br>
+                        <p style="color: #2b3f73; font-size: 1.05rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
+                        <p style="color: #344a82; font-size: 0.92rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #2b3f73;">Try Again</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -629,12 +703,12 @@
                     document.getElementById("resultCount").textContent = "? Unclear Search";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px; border: 1px solid #d97706;">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f7e9c9; border-radius: 14px; border: 1px solid #c9952c;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div><br>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #b45309; font-weight: 700;">Search Too Short</h3>
-                        <p style="color: #92400e; font-size: 1.1rem; margin-bottom: 8px;">We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".</p>
-                        <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 20px;">Please type at least <strong>3 characters</strong> (e.g., "Namal").</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #d97706;">Try Again</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #7a5814; font-weight: 700; font-style: italic;">Search Too Short</h3>
+                        <p style="color: #6b4d11; font-size: 1.05rem; margin-bottom: 8px;">We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".</p>
+                        <p style="color: #6b4d11; font-size: 0.92rem; margin-bottom: 20px;">Please type at least <strong>3 characters</strong> (e.g., "Namal").</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: #b07f1d;">Try Again</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -674,16 +748,14 @@
             
             const total = state.showFavorites ? state.favorites.length : state.totalResults;
 
-            // --- NAYI LOGIC: FAVORITES AUR SEARCH KE LIYE ALAG ALAG EMPTY MESSAGES ---
             if (total === 0) {
                 if (state.showFavorites) {
-                    // Counter hide kar diya
                     resultCountSpan.style.visibility = "hidden";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                         <div style="font-size: 3.5rem; margin-bottom: 15px; opacity: 0.5; filter: grayscale(100%);">🤍</div>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: var(--text-main); font-weight: 700;">No Favorites Yet</h3>
-                        <p style="color: #4b5563; font-size: 1.05rem; font-weight: 500; margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: var(--text-main); font-weight: 700; font-style: italic;">No Favorites Yet</h3>
+                        <p style="color: var(--text-sub); font-size: 1.0rem; font-weight: 500; margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
                     </div>`;
                     showRecommendations(); 
                 } else {
@@ -691,7 +763,7 @@
                     resultCountSpan.textContent = "Found Novels: 0";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No novels found 😕</h3>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px; font-style: italic; color: var(--ink);">No novels found 😕</h3>
                         <p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p>
                         <button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button>
                     </div>`;
@@ -701,7 +773,6 @@
                 return;
             }
 
-            // Agar results majood hain to counter show karein
             resultCountSpan.style.visibility = "visible";
             resultCountSpan.textContent = `${state.showFavorites ? 'Favorite' : 'Found'} Novels: ${total}`;
 
@@ -766,7 +837,7 @@
                     let safeLink = (novel.Links && /^https?:\/\//i.test(novel.Links)) ? novel.Links : '#';
 
                     recGrid.innerHTML += `
-                    <div class="novel-card" style="opacity: 0.9">
+                    <div class="novel-card" style="opacity: 0.92">
                         <h2 class="novel-title" title="${safeTitle}">${safeTitle}</h2>
                         <div class="card-actions">
                             <a href="${safeLink}" target="_blank" class="btn btn-download"><span>📥</span> Download PDF</a>
@@ -776,7 +847,7 @@
             } catch(e) { console.error("Rec Error:", e) }
         }
 
-        // --- UPDATED SUGGESTIONS LOGIC (UI, GOOGLE SVG ICON, NO RESULTS FIX) ---
+        // --- SUGGESTIONS LOGIC ---
         async function showSuggestions(query) {
             const box = document.getElementById("suggestions");
             currentFocus = -1; 
@@ -804,7 +875,7 @@
                     try {
                         const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         const regex = new RegExp(`(${safeQuery})`, 'gi');
-                        highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--primary); font-weight: 800;">$1</span>');
+                        highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--ink); font-weight: 800;">$1</span>');
                     } catch(e) {}
 
                     return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">
@@ -840,19 +911,17 @@
             state.currentPage = 1;
             
             if (state.showFavorites) { 
-                // Button UI jab active ho
                 btn.innerHTML = "<span>⬅</span> Back to Library"; 
-                btn.style.background = "var(--primary)"; 
-                btn.style.borderColor = "var(--primary)";
+                btn.style.background = "var(--ink)"; 
+                btn.style.borderColor = "var(--ink)";
                 btn.style.color = "white"; 
-                btn.style.boxShadow = "0 4px 15px rgba(79, 70, 229, 0.3)";
+                btn.style.boxShadow = "0 4px 15px rgba(92,26,43,0.3)";
                 renderResults();
             } else { 
-                // Button UI jab normal ho
                 btn.innerHTML = "Show Favorites ❤️"; 
-                btn.style.background = "white"; 
-                btn.style.borderColor = "var(--secondary)";
-                btn.style.color = "var(--secondary)"; 
+                btn.style.background = "var(--paper-card)"; 
+                btn.style.borderColor = "var(--ink)";
+                btn.style.color = "var(--ink)"; 
                 btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
                 fetchData(document.getElementById("searchBox").value.trim());
             }
@@ -909,12 +978,11 @@
             document.getElementById("suggestions").classList.remove("active"); 
             state.showFavorites = false; 
             
-            // Clear karne pe button ko reset karein
             const btn = document.getElementById("favToggle");
             btn.innerHTML = "Show Favorites ❤️"; 
-            btn.style.background = "white"; 
-            btn.style.borderColor = "var(--secondary)";
-            btn.style.color = "var(--secondary)"; 
+            btn.style.background = "var(--paper-card)"; 
+            btn.style.borderColor = "var(--ink)";
+            btn.style.color = "var(--ink)"; 
             btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
             
             state.currentPage = 1; 
@@ -983,13 +1051,12 @@
     const userId = getUserId();
     const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
     
-    // 🚀 MAGIC FIX: true/false ko explicitly "Yes" ya "No" string mein badal diya
     const resultStatus = n ? "Yes" : "No";
 
     const params = new URLSearchParams({ 
         search: q, 
         timestamp: new Date().toISOString(), 
-        noResults: resultStatus, // Ab yahan direct Yes ya No jayega
+        noResults: resultStatus,
         device: deviceType, 
         userId: userId 
     });
