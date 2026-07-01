@@ -513,35 +513,6 @@
         .surprise-again { background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); }
         .surprise-again:hover { background: var(--ink); color: white; }
 
-        /* --- FIXED FOOTER REPORT BUTTON --- */
-        .fixed-report-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 20px;
-            z-index: 9990;
-            background: var(--ink);
-            color: white;
-            border: none;
-            padding: 13px 20px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.88rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 6px 20px rgba(61,15,28,0.4);
-            transition: all 0.25s ease;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            text-decoration: none;
-        }
-        .fixed-report-btn:hover {
-            background: var(--ink-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(61,15,28,0.5);
-        }
-        .fixed-report-btn .btn-label { display: inline; }
-
         /* --- REQUEST BANNER (empty/no results) --- */
         .request-banner {
             margin-top: 20px;
@@ -587,8 +558,6 @@
         .request-banner-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
 
         @media (max-width: 600px) {
-            .fixed-report-btn .btn-label { display: none; }
-            .fixed-report-btn { padding: 14px; border-radius: 50%; width: 50px; height: 50px; justify-content: center; font-size: 1.2rem; }
             .request-banner { flex-direction: column; align-items: flex-start; }
             .request-banner-btn { width: 100%; justify-content: center; }
             .surprise-modal { padding: 30px 20px 24px; }
@@ -638,7 +607,6 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- SURPRISE ME MODAL -->
     <div class="surprise-overlay" id="surpriseOverlay" onclick="closeSurprise(event)">
         <div class="surprise-modal" id="surpriseModal">
             <button class="surprise-modal-close" onclick="closeSurpriseBtn()">✕</button>
@@ -651,11 +619,6 @@
             </div>
         </div>
     </div>
-
-    <!-- FIXED FOOTER REPORT BUTTON -->
-    <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="fixed-report-btn" title="Report a Problem">
-        🚩 <span class="btn-label">Report a Problem</span>
-    </a>
 
     <script>
         const CONFIG = {
@@ -677,7 +640,6 @@
             showFavorites: false,
             lastLog: "",
             randomOffset: Math.floor(Math.random() * 75000),
-            // NAYI LINE: Pehle se dekhe hue surprise novels ki memory
             seenSurprises: JSON.parse(localStorage.getItem("seenSurprises") || "[]") 
         };
 
@@ -1234,7 +1196,7 @@
             dice.style.animation = "rollDice 0.5s ease";
 
             try {
-                // Ab hum POST method use kar rahe hain, list kitni bhi lambi ho URL error nahi aayega
+                // POST method use kar rahe hain, limit error nahi aayega
                 const res = await fetch(CONFIG.apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
