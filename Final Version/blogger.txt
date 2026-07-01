@@ -597,10 +597,10 @@
 
     <div class="app-header">
         <div class="header-ornament">
-            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke-linejoin="round" stroke-width="2" stroke="#e9c878">
-                <path d="M24 10V37" stroke-width="2" stroke="#e9c878">
-            </path></path></svg>
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke="#e9c878" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M24 10V37" stroke="#e9c878" stroke-width="2"/>
+            </svg>
         </div>
         <h1>Smart Novel Bank</h1>
         <p class="subtitle">Search, discover, aur apne pasandeeda Urdu novels PDF mein download karein.</p>
@@ -620,7 +620,7 @@
     <div class="app-main">
         <div class="controls">
             <span id="resultCount">Loading Library...</span>
-            <div style="align-items: center; display: flex; flex-wrap: wrap; gap: 10px;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <button class="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me</button>
                 <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
             </div>
@@ -629,7 +629,7 @@
         <div class="grid-container" id="results"></div>
 
         <div id="recommendedSection" style="display: none; margin-top: 30px;">
-            <h3 style="color: var(--ink); font-style: italic; margin-bottom: 26px; text-align: center;">You Might Like</h3>
+            <h3 style="margin-bottom: 26px; text-align: center; font-style: italic; color: var(--ink);">You Might Like</h3>
             <div class="grid-container" id="recommendedGrid"></div>
         </div>
 
@@ -638,7 +638,7 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!--SURPRISE ME MODAL-->
+    <!-- SURPRISE ME MODAL -->
     <div class="surprise-overlay" id="surpriseOverlay" onclick="closeSurprise(event)">
         <div class="surprise-modal" id="surpriseModal">
             <button class="surprise-modal-close" onclick="closeSurpriseBtn()">✕</button>
@@ -646,14 +646,14 @@
             <span class="novel-label">Aaj ka novel</span>
             <div class="novel-name" id="surpriseTitle">Loading...</div>
             <div class="surprise-actions">
-                <a class="surprise-download" href="#" id="surpriseDownload" target="_blank">📥 Download PDF</a>
+                <a href="#" id="surpriseDownload" target="_blank" class="surprise-download">📥 Download PDF</a>
                 <button class="surprise-again" onclick="surpriseMe()">🎲 Dobara</button>
             </div>
         </div>
     </div>
 
-    <!--FIXED FOOTER REPORT BUTTON-->
-    <a class="fixed-report-btn" href="YOUR_GOOGLE_FORM_LINK" target="_blank" title="Report a Problem">
+    <!-- FIXED FOOTER REPORT BUTTON -->
+    <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="fixed-report-btn" title="Report a Problem">
         🚩 <span class="btn-label">Report a Problem</span>
     </a>
 
@@ -1233,7 +1233,8 @@
 
             try {
                 const randomOffset = Math.floor(Math.random() * 75000);
-                const res = await fetch(`${CONFIG.apiUrl}?offset=${randomOffset}`);
+                const res = await fetch(`${CONFIG.apiUrl}?featured=true`);
+// API khud server pe random pick karke deta hai
                 const result = await res.json();
                 const novels = result.data || [];
                 if (novels.length === 0) { title.textContent = "Koi novel nahi mila, dobara try karein."; return; }
