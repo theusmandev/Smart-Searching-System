@@ -393,6 +393,206 @@
         @media (prefers-reduced-motion: reduce) {
             #novel-app-wrapper * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
+
+        /* --- SURPRISE ME BUTTON --- */
+        .surprise-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold) 0%, #e0a820 100%);
+            color: #3d0f1c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 10px rgba(201,149,44,0.35);
+        }
+        .surprise-btn:hover {
+            transform: translateY(-2px) rotate(-1deg);
+            box-shadow: 0 6px 18px rgba(201,149,44,0.45);
+        }
+        .surprise-btn:active { transform: scale(0.97); }
+
+        /* --- SURPRISE MODAL OVERLAY --- */
+        .surprise-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(43, 29, 20, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .surprise-overlay.active { display: flex; animation: fadeInOverlay 0.25s ease; }
+
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+        .surprise-modal {
+            background: var(--paper-card);
+            border-radius: 20px;
+            padding: 36px 30px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px -10px rgba(43,29,20,0.4);
+            border: 1px solid var(--paper-line);
+            border-top: 5px solid var(--gold);
+            position: relative;
+            animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .surprise-modal-close {
+            position: absolute;
+            top: 14px; right: 16px;
+            background: var(--paper);
+            border: 1px solid var(--paper-line);
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-sub);
+            transition: 0.2s;
+        }
+        .surprise-modal-close:hover { background: var(--ink); color: white; }
+
+        .surprise-dice { font-size: 3.5rem; margin-bottom: 10px; display: block; animation: rollDice 0.5s ease; }
+        @keyframes rollDice { 0% { transform: rotate(0deg) scale(0.5); } 60% { transform: rotate(20deg) scale(1.1); } 100% { transform: rotate(0deg) scale(1); } }
+
+        .surprise-modal h3 {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.4rem;
+            color: var(--ink-dark);
+            margin: 0 0 6px;
+        }
+        .surprise-modal .novel-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
+            display: block;
+        }
+        .surprise-modal .novel-name {
+            font-family: 'Georgia', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            background: var(--paper);
+            border: 1px solid var(--paper-line);
+            border-left: 4px solid var(--gold-soft);
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 0 0 20px;
+            line-height: 1.4;
+        }
+        .surprise-actions { display: flex; gap: 10px; }
+        .surprise-actions a, .surprise-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .surprise-download { background: var(--ink); color: white !important; border: none; }
+        .surprise-download:hover { background: var(--ink-dark); }
+        .surprise-again { background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); }
+        .surprise-again:hover { background: var(--ink); color: white; }
+
+        /* --- FIXED FOOTER REPORT BUTTON --- */
+        .fixed-report-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            z-index: 9990;
+            background: var(--ink);
+            color: white;
+            border: none;
+            padding: 13px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(61,15,28,0.4);
+            transition: all 0.25s ease;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            text-decoration: none;
+        }
+        .fixed-report-btn:hover {
+            background: var(--ink-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(61,15,28,0.5);
+        }
+        .fixed-report-btn .btn-label { display: inline; }
+
+        /* --- REQUEST BANNER (empty/no results) --- */
+        .request-banner {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #eef5fb 0%, #e8f4ed 100%);
+            border: 1px solid #b8d8f0;
+            border-left: 5px solid #3b82f6;
+            border-radius: 14px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .request-banner-text h4 {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: #1e3a6e;
+            margin: 0 0 4px;
+        }
+        .request-banner-text p {
+            font-size: 0.88rem;
+            color: #3b5998;
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .request-banner-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
+            transition: 0.2s;
+            text-decoration: none;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .request-banner-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        @media (max-width: 600px) {
+            .fixed-report-btn .btn-label { display: none; }
+            .fixed-report-btn { padding: 14px; border-radius: 50%; width: 50px; height: 50px; justify-content: center; font-size: 1.2rem; }
+            .request-banner { flex-direction: column; align-items: flex-start; }
+            .request-banner-btn { width: 100%; justify-content: center; }
+            .surprise-modal { padding: 30px 20px 24px; }
+        }
     </style>
 
     <div class="app-header">
@@ -403,7 +603,7 @@
             </path></path></svg>
         </div>
         <h1>Smart Novel Bank</h1>
-        <p class="subtitle">Search, discover, and download your favorite Urdu novels in PDF format.</p>
+        <p class="subtitle">Search, discover, aur apne pasandeeda Urdu novels PDF mein download karein.</p>
         <div class="header-divider"></div>
     </div>
 
@@ -420,7 +620,10 @@
     <div class="app-main">
         <div class="controls">
             <span id="resultCount">Loading Library...</span>
-            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
+            <div style="align-items: center; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me</button>
+                <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
+            </div>
         </div>
 
         <div class="grid-container" id="results"></div>
@@ -434,6 +637,25 @@
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
+
+    <!--SURPRISE ME MODAL-->
+    <div class="surprise-overlay" id="surpriseOverlay" onclick="closeSurprise(event)">
+        <div class="surprise-modal" id="surpriseModal">
+            <button class="surprise-modal-close" onclick="closeSurpriseBtn()">✕</button>
+            <span class="surprise-dice" id="surpriseDice">🎲</span>
+            <span class="novel-label">Aaj ka novel</span>
+            <div class="novel-name" id="surpriseTitle">Loading...</div>
+            <div class="surprise-actions">
+                <a class="surprise-download" href="#" id="surpriseDownload" target="_blank">📥 Download PDF</a>
+                <button class="surprise-again" onclick="surpriseMe()">🎲 Dobara</button>
+            </div>
+        </div>
+    </div>
+
+    <!--FIXED FOOTER REPORT BUTTON-->
+    <a class="fixed-report-btn" href="YOUR_GOOGLE_FORM_LINK" target="_blank" title="Report a Problem">
+        🚩 <span class="btn-label">Report a Problem</span>
+    </a>
 
     <script>
         const CONFIG = {
@@ -758,6 +980,15 @@
                         <h3 style="font-size: 1.5rem; margin-bottom: 10px; font-style: italic; color: var(--ink);">No novels found 😕</h3>
                         <p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p>
                         <button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button>
+                    </div>
+                    <div style="grid-column: 1/-1;">
+                        <div class="request-banner">
+                            <div class="request-banner-text">
+                                <h4>Novel nahi mila? 📬</h4>
+                                <p>Humein batao — hum is novel ko add karne ki koshish karenge!</p>
+                            </div>
+                            <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="request-banner-btn">Request Novel 📨</a>
+                        </div>
                     </div>`;
                     showRecommendations(); 
                 }
@@ -980,6 +1211,50 @@
             state.currentPage = 1; 
             state.randomOffset = Math.floor(Math.random() * 75000); 
             fetchData(); 
+        }
+
+        // --- SURPRISE ME ---
+        async function surpriseMe() {
+            const overlay = document.getElementById("surpriseOverlay");
+            const title = document.getElementById("surpriseTitle");
+            const dice = document.getElementById("surpriseDice");
+            const dlBtn = document.getElementById("surpriseDownload");
+
+            overlay.classList.add("active");
+            title.textContent = "Dhundh raha hoon...";
+            dlBtn.href = "#";
+            dlBtn.style.pointerEvents = "none";
+            dlBtn.style.opacity = "0.5";
+
+            // Animate dice
+            dice.style.animation = "none";
+            void dice.offsetWidth;
+            dice.style.animation = "rollDice 0.5s ease";
+
+            try {
+                const randomOffset = Math.floor(Math.random() * 75000);
+                const res = await fetch(`${CONFIG.apiUrl}?offset=${randomOffset}`);
+                const result = await res.json();
+                const novels = result.data || [];
+                if (novels.length === 0) { title.textContent = "Koi novel nahi mila, dobara try karein."; return; }
+                const pick = novels[Math.floor(Math.random() * novels.length)];
+                title.textContent = pick.Titles;
+                const safeLink = (pick.Links && /^https?:\/\//i.test(pick.Links)) ? pick.Links : '#';
+                dlBtn.href = safeLink;
+                dlBtn.style.pointerEvents = "auto";
+                dlBtn.style.opacity = "1";
+            } catch(e) {
+                title.textContent = "Error aa gaya, dobara try karein.";
+            }
+        }
+
+        function closeSurprise(e) {
+            if (e.target === document.getElementById("surpriseOverlay")) {
+                document.getElementById("surpriseOverlay").classList.remove("active");
+            }
+        }
+        function closeSurpriseBtn() {
+            document.getElementById("surpriseOverlay").classList.remove("active");
         }
 
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
