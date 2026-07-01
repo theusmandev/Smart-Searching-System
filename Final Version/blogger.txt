@@ -676,7 +676,9 @@
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
             showFavorites: false,
             lastLog: "",
-            randomOffset: Math.floor(Math.random() * 75000) 
+            randomOffset: Math.floor(Math.random() * 75000),
+            // NAYI LINE: Pehle se dekhe hue surprise novels ki memory
+            seenSurprises: JSON.parse(localStorage.getItem("seenSurprises") || "[]") 
         };
 
         // --- TYPEWRITER PLACEHOLDER LOGIC ---
@@ -1213,7 +1215,7 @@
             fetchData(); 
         }
 
-        // --- SURPRISE ME ---
+        // --- SURPRISE ME (UPDATED FOR POST METHOD AND 5000+ NOVELS LIMIT) ---
         async function surpriseMe() {
             const overlay = document.getElementById("surpriseOverlay");
             const title = document.getElementById("surpriseTitle");
@@ -1232,19 +1234,50 @@
             dice.style.animation = "rollDice 0.5s ease";
 
             try {
-                const randomOffset = Math.floor(Math.random() * 75000);
-                const res = await fetch(`${CONFIG.apiUrl}?featured=true`);
-// API khud server pe random pick karke deta hai
+                // Ab hum POST method use kar rahe hain, list kitni bhi lambi ho URL error nahi aayega
+                const res = await fetch(CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ featured: true, seen: state.seenSurprises })
+                });
+
                 const result = await res.json();
                 const novels = result.data || [];
-                if (novels.length === 0) { title.textContent = "Koi novel nahi mila, dobara try karein."; return; }
-                const pick = novels[Math.floor(Math.random() * novels.length)];
+                
+                if (novels.length === 0) { 
+                    title.textContent = "Koi featured novel nahi mila, dobara try karein."; 
+                    return; 
+                }
+                
+                const pick = novels[0]; 
                 title.textContent = pick.Titles;
+                
                 const safeLink = (pick.Links && /^https?:\/\//i.test(pick.Links)) ? pick.Links : '#';
                 dlBtn.href = safeLink;
                 dlBtn.style.pointerEvents = "auto";
                 dlBtn.style.opacity = "1";
+
+                // Agar API ne list reset kar di hai, toh browser memory bhi clear kar do
+                if (result.reset) {
+                    state.seenSurprises = [];
+                }
+
+                // Memory update logic
+                if (!state.seenSurprises.includes(pick.Titles)) {
+                    state.seenSurprises.push(pick.Titles);
+                }
+                
+                // Limit Check: 5000 par pohochte hi reset kar do
+                if (state.seenSurprises.length >= 5000) {
+                    state.seenSurprises = [];
+                    localStorage.removeItem("seenSurprises");
+                    showToast("Surprise history reset ho gayi hai!");
+                } else {
+                    localStorage.setItem("seenSurprises", JSON.stringify(state.seenSurprises));
+                }
+                
             } catch(e) {
+                console.error("Surprise Me Error:", e);
                 title.textContent = "Error aa gaya, dobara try karein.";
             }
         }
@@ -1315,21 +1348,21 @@
             return id;
         }
 
-  function logSearch(q, n) { 
-    const userId = getUserId();
-    const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
-    
-    const resultStatus = n ? "Yes" : "No";
+        function logSearch(q, n) { 
+            const userId = getUserId();
+            const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+            
+            const resultStatus = n ? "Yes" : "No";
 
-    const params = new URLSearchParams({ 
-        search: q, 
-        timestamp: new Date().toISOString(), 
-        noResults: resultStatus,
-        device: deviceType, 
-        userId: userId 
-    });
-    
-    fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
-}
+            const params = new URLSearchParams({ 
+                search: q, 
+                timestamp: new Date().toISOString(), 
+                noResults: resultStatus,
+                device: deviceType, 
+                userId: userId 
+            });
+            
+            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
+        }
     </script>
 </div>
