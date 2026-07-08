@@ -11,37 +11,84 @@
     <style>
         /* =====================================================
            SMART NOVEL BANK — "Inked Pages" design system
-           Palette: aged paper, deep maroon ink, warm gold leaf
-           Type: serif display (literary/print feel) + clean sans body
+           Light Palette: aged paper, deep maroon ink, warm gold leaf
+           Dark Palette: midnight paper, rich gold, soft light text
         ===================================================== */
-        #novel-app-wrapper {
-            --ink: #5c1a2b;            /* deep maroon — primary */
-            --ink-dark: #3d0f1c;       /* darker maroon for hover/press */
-            --gold: #c9952c;          /* gold leaf accent */
-            --gold-soft: #e9c878;
-            --paper: #f6efe2;          /* warm aged-paper background */
-            --paper-card: #fffaf0;     /* card surface, slightly lighter */
-            --paper-line: #e7dcc4;     /* hairline borders */
-            --text-main: #2b1d14;
-            --text-sub: #7a6a55;
-            --success: #2f7d5a;
-            --danger: #b3382c;
-            --shadow: 0 3px 10px -2px rgba(61, 15, 28, 0.12), 0 1px 3px rgba(61,15,28,0.08);
-            --shadow-lg: 0 16px 32px -8px rgba(61, 15, 28, 0.22), 0 4px 10px -4px rgba(61,15,28,0.12);
-            --radius: 14px;
+        
+        :root {
+            /* Light Mode Variables */
+            --sn-ink: #5c1a2b;            /* deep maroon — primary */
+            --sn-ink-dark: #3d0f1c;       /* darker maroon for hover/press */
+            --sn-gold: #c9952c;           /* gold leaf accent */
+            --sn-gold-soft: #e9c878;
+            --sn-paper: #f6efe2;          /* warm aged-paper background */
+            --sn-paper-card: #fffaf0;     /* card surface, slightly lighter */
+            --sn-paper-line: #e7dcc4;     /* hairline borders */
+            --sn-text-main: #2b1d14;
+            --sn-text-sub: #7a6a55;
+            --sn-success: #2f7d5a;
+            --sn-danger: #b3382c;
+            --sn-shadow: 0 3px 10px -2px rgba(61, 15, 28, 0.12), 0 1px 3px rgba(61,15,28,0.08);
+            --sn-shadow-lg: 0 16px 32px -8px rgba(61, 15, 28, 0.22), 0 4px 10px -4px rgba(61,15,28,0.12);
+            --sn-header-bg-start: #5c1a2b;
+            --sn-header-bg-end: #3d0f1c;
+            
+            /* Alerts Light */
+            --sn-alert-red-bg: #fbe2dd;
+            --sn-alert-red-border: #e0a394;
+            --sn-alert-red-text: #8c2a1e;
+            --sn-alert-blue-bg: #eef2fb;
+            --sn-alert-blue-border: #a9bce4;
+            --sn-alert-blue-text: #2b3f73;
+            --sn-alert-yellow-bg: #f7e9c9;
+            --sn-alert-yellow-border: #c9952c;
+            --sn-alert-yellow-text: #7a5814;
+        }
 
+        /* Dark Mode Classes (Controlled by Website Button) */
+        .dark-mode #novel-app-wrapper, .darkmode #novel-app-wrapper, .drk #novel-app-wrapper, body.dark #novel-app-wrapper, [data-theme="dark"] #novel-app-wrapper {
+            --sn-ink: #c9952c;            /* Swapping ink to gold for primary accents */
+            --sn-ink-dark: #a8791f;
+            --sn-gold: #e9c878;
+            --sn-gold-soft: #3d2b0e;
+            --sn-paper: #121212;          /* Very dark background */
+            --sn-paper-card: #1e1e1e;     /* Dark card surface */
+            --sn-paper-line: #333333;     /* Dark hairline borders */
+            --sn-text-main: #e5e7eb;      /* Light text */
+            --sn-text-sub: #9ca3af;       /* Dimmed text */
+            --sn-success: #34d399;
+            --sn-danger: #ef4444;
+            --sn-shadow: 0 3px 10px -2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0,0,0,0.3);
+            --sn-shadow-lg: 0 16px 32px -8px rgba(0, 0, 0, 0.7), 0 4px 10px -4px rgba(0,0,0,0.5);
+            --sn-header-bg-start: #1a1a1a;
+            --sn-header-bg-end: #0a0a0a;
+
+            /* Alerts Dark */
+            --sn-alert-red-bg: #2d1515;
+            --sn-alert-red-border: #5c1a1a;
+            --sn-alert-red-text: #fca5a5;
+            --sn-alert-blue-bg: #151c2d;
+            --sn-alert-blue-border: #1e3a8a;
+            --sn-alert-blue-text: #93c5fd;
+            --sn-alert-yellow-bg: #2d2615;
+            --sn-alert-yellow-border: #7a5814;
+            --sn-alert-yellow-text: #fcd34d;
+        }
+
+        #novel-app-wrapper {
+            --radius: 14px;
             font-family: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', serif;
-            background: var(--paper);
-            background-image:
-                radial-gradient(circle at 1px 1px, rgba(92,26,43,0.05) 1px, transparent 0);
+            background: var(--sn-paper);
+            background-image: radial-gradient(circle at 1px 1px, rgba(201,149,44,0.05) 1px, transparent 0); 
             background-size: 22px 22px;
-            color: var(--text-main);
+            color: var(--sn-text-main);
             display: flex;
             flex-direction: column;
             width: 100%;
             border-radius: 10px;
             overflow: hidden;
             position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         #novel-app-wrapper * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -49,8 +96,7 @@
 
         /* --- HEADER --- */
         .app-header {
-            background:
-                linear-gradient(160deg, var(--ink) 0%, var(--ink-dark) 100%);
+            background: linear-gradient(160deg, var(--sn-header-bg-start) 0%, var(--sn-header-bg-end) 100%);
             color: #fff;
             padding: 38px 20px 64px;
             text-align: center;
@@ -59,6 +105,7 @@
             margin-bottom: 20px;
             position: relative;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
         /* signature: gold "open book" ornament behind the title */
@@ -90,7 +137,7 @@
             color: #fdf6e3;
             margin-top: 0;
             position: relative; z-index: 1;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
         }
         .subtitle {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -106,7 +153,7 @@
         .header-divider {
             width: 70px; height: 2px;
             margin: 16px auto 0;
-            background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+            background: linear-gradient(90deg, transparent, var(--sn-gold), transparent);
             position: relative; z-index: 1;
         }
 
@@ -120,13 +167,14 @@
         }
 
         .search-box-wrapper {
-            background: var(--paper-card);
+            background: var(--sn-paper-card);
             padding: 7px;
             border-radius: 12px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--sn-shadow-lg);
             display: flex;
             align-items: center;
-            border: 1px solid var(--paper-line);
+            border: 1px solid var(--sn-paper-line);
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         #searchBox {
@@ -136,9 +184,9 @@
             padding: 13px 18px;
             font-size: 1rem;
             outline: none;
-            color: var(--text-main);
+            color: var(--sn-text-main);
             min-width: 0;
-            caret-color: var(--ink);
+            caret-color: var(--sn-ink);
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
@@ -148,7 +196,7 @@
             width: 40px;
             height: 40px;
             border: none;
-            background: var(--paper);
+            background: var(--sn-paper);
             border-radius: 10px;
             cursor: pointer;
             display: flex;
@@ -158,11 +206,15 @@
             transition: 0.2s;
             font-size: 1.05rem;
             flex-shrink: 0;
-            color: var(--ink);
+            color: var(--sn-ink);
         }
 
-        .action-icon:hover { background: var(--ink); color: #fff; transform: translateY(-1px); }
-        .action-icon.mic.listening { background: var(--success); color: white; animation: pulse 1.5s infinite; }
+        .action-icon:hover { background: var(--sn-ink); color: #ffffff; transform: translateY(-1px); }
+        .dark-mode .action-icon:hover, .darkmode .action-icon:hover, body.dark .action-icon:hover, [data-theme="dark"] .action-icon:hover {
+            color: #121212;
+        }
+        
+        .action-icon.mic.listening { background: var(--sn-success); color: white; animation: pulse 1.5s infinite; }
 
         #clearBtn { display: none; }
         #clearBtn.show-btn { display: flex; animation: popIn 0.2s ease-out forwards; }
@@ -172,9 +224,10 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* --- FIXED: SEARCH BUTTON TEXT COLOR --- */
         .search-submit {
-            background: var(--ink);
-            color: white;
+            background: var(--sn-ink);
+            color: #ffffff; /* Text is white in light mode */
             border-radius: 9px;
             padding: 0 22px;
             width: auto;
@@ -182,19 +235,25 @@
             cursor: pointer;
             letter-spacing: 0.2px;
         }
-        .search-submit:hover { background: var(--ink-dark); }
+        .search-submit:hover { background: var(--sn-ink-dark); color: #fff;}
+        .dark-mode .search-submit, .darkmode .search-submit, body.dark .search-submit, [data-theme="dark"] .search-submit {
+             color: #121212; /* Text becomes dark on gold background in dark mode */
+        }
+        .dark-mode .search-submit:hover, .darkmode .search-submit:hover, body.dark .search-submit:hover, [data-theme="dark"] .search-submit:hover {
+             color: #121212; 
+        }
 
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(47,125,90,0.6); } 70% { box-shadow: 0 0 0 10px rgba(47,125,90,0); } 100% { box-shadow: 0 0 0 0 rgba(47,125,90,0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); } 70% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
 
         /* --- SUGGESTIONS --- */
         .suggestions-box {
             position: absolute;
             top: calc(100% + 8px);
             left: 0; right: 0;
-            background: var(--paper-card);
+            background: var(--sn-paper-card);
             border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--paper-line);
+            box-shadow: var(--sn-shadow-lg);
+            border: 1px solid var(--sn-paper-line);
             overflow: hidden;
             display: none;
             max-height: 300px;
@@ -213,22 +272,22 @@
 
         .suggestion-item {
             padding: 13px 20px;
-            border-bottom: 1px solid var(--paper-line);
+            border-bottom: 1px solid var(--sn-paper-line);
             cursor: pointer;
             font-size: 0.97rem;
             font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--text-main);
+            color: var(--sn-text-main);
             transition: background 0.15s;
         }
         .suggestion-item:last-child { border-bottom: none; }
 
-        .suggestion-item:hover, .suggestion-item.selected { background: #f6e9c9; color: var(--ink-dark); }
+        .suggestion-item:hover, .suggestion-item.selected { background: var(--sn-gold-soft); color: var(--sn-ink); }
 
-        .suggestion-icon { color: var(--text-sub); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .suggestion-item:hover .suggestion-icon, .suggestion-item.selected .suggestion-icon { color: var(--ink); }
+        .suggestion-icon { color: var(--sn-text-sub); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .suggestion-item:hover .suggestion-icon, .suggestion-item.selected .suggestion-icon { color: var(--sn-ink); }
 
         /* --- MAIN LAYOUT --- */
         .app-main { flex: 1; padding: 18px 20px 30px; width: 100%; max-width: 1200px; margin: 0 auto; }
@@ -238,7 +297,7 @@
             font-family: 'Segoe UI', system-ui, sans-serif;
         }
         #resultCount {
-            color: var(--text-sub);
+            color: var(--sn-text-sub);
             font-size: 0.92rem;
             font-weight: 600;
             letter-spacing: 0.3px;
@@ -254,33 +313,33 @@
 
         /* --- CARD: "book" treatment with spine accent --- */
         .novel-card {
-            background: var(--paper-card);
+            background: var(--sn-paper-card);
             border-radius: var(--radius);
             padding: 20px 20px 18px 18px;
-            box-shadow: var(--shadow);
+            box-shadow: var(--sn-shadow);
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
-            border: 1px solid var(--paper-line);
-            border-left: 5px solid var(--gold-soft);
+            border: 1px solid var(--sn-paper-line);
+            border-left: 5px solid var(--sn-gold);
             min-height: 170px;
             position: relative;
         }
 
         .novel-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--paper-line);
-            border-left-color: var(--ink);
+            box-shadow: var(--sn-shadow-lg);
+            border-color: var(--sn-ink);
+            border-left-color: var(--sn-ink);
         }
 
         .novel-title {
             font-family: 'Georgia', serif;
             font-size: 1.12rem;
             font-weight: 700;
-            color: var(--text-main);
+            color: var(--sn-text-main);
             margin-bottom: 18px;
             line-height: 1.4;
             display: -webkit-box;
@@ -291,8 +350,8 @@
         }
 
         mark.highlight {
-            background-color: var(--gold-soft);
-            color: var(--ink-dark);
+            background-color: var(--sn-gold-soft);
+            color: var(--sn-text-main);
             padding: 0 2px;
             border-radius: 4px;
             font-weight: 700;
@@ -304,36 +363,47 @@
         }
         .btn { border: none; border-radius: 9px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 
+        /* --- FIXED: DOWNLOAD BUTTON TEXT COLOR --- */
         .btn-download {
-            flex: 1; background: var(--ink); color: white !important; text-decoration: none;
+            flex: 1; background: var(--sn-ink); color: #ffffff !important; text-decoration: none;
             padding: 12px 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 8px;
             letter-spacing: 0.2px;
         }
-        .btn-download:hover { background: var(--ink-dark); transform: translateY(-1px); }
+        .dark-mode .btn-download, .darkmode .btn-download, body.dark .btn-download, [data-theme="dark"] .btn-download {
+            color: #121212 !important; /* Keep text dark on gold button in dark mode */
+        }
+        .btn-download:hover { background: var(--sn-ink-dark); color: #fff !important; transform: translateY(-1px); }
         .btn-download span { font-size: 1.05rem; }
 
-        .btn-secondary { background: var(--paper); color: var(--text-sub); width: 46px; height: 46px; padding: 0; flex-shrink: 0; font-size: 1.15rem; border: 1px solid var(--paper-line); }
-        .btn-secondary:hover { background: var(--gold-soft); color: var(--ink-dark); border-color: var(--gold-soft); }
-        .btn-fav.active { color: var(--danger); background: #fbe2dd; border-color: #f0c4ba; }
+        .btn-secondary { background: var(--sn-paper); color: var(--sn-text-sub); width: 46px; height: 46px; padding: 0; flex-shrink: 0; font-size: 1.15rem; border: 1px solid var(--sn-paper-line); }
+        .btn-secondary:hover { background: var(--sn-gold-soft); color: var(--sn-ink); border-color: var(--sn-gold-soft); }
+        .btn-fav.active { color: var(--sn-danger); background: var(--sn-alert-red-bg); border-color: var(--sn-alert-red-border); }
 
         /* --- PAGINATION --- */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 38px; flex-wrap: wrap; font-family: 'Segoe UI', system-ui, sans-serif; }
 
         .page-btn {
             display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px;
-            border-radius: 9px; border: 1px solid var(--paper-line); background: var(--paper-card); color: var(--text-main);
+            border-radius: 9px; border: 1px solid var(--sn-paper-line); background: var(--sn-paper-card); color: var(--sn-text-main);
             font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; padding: 0 10px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
 
-        .page-btn:hover:not(:disabled):not(.active) { border-color: var(--ink); color: var(--ink); background: #fbf3e2; }
-        .page-btn.active { background: var(--ink); color: white; border-color: var(--ink); box-shadow: 0 4px 12px rgba(92,26,43,0.3); }
+        .page-btn:hover:not(:disabled):not(.active) { border-color: var(--sn-ink); color: var(--sn-ink); background: var(--sn-gold-soft); }
+        
+        /* --- FIXED: ACTIVE PAGE BTN TEXT COLOR --- */
+        .page-btn.active { background: var(--sn-ink); color: #ffffff; border-color: var(--sn-ink); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .dark-mode .page-btn.active, .darkmode .page-btn.active, body.dark .page-btn.active, [data-theme="dark"] .page-btn.active { color: #121212; }
 
-        .page-btn.nav-btn { min-width: auto; padding: 0 22px; font-weight: 700; color: var(--ink); border-color: var(--ink); background: var(--paper-card); }
-        .page-btn.nav-btn:hover:not(:disabled) { background: var(--ink); color: white; }
-        .page-btn:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--paper-line) !important; color: var(--text-sub) !important; background: var(--paper-card) !important; box-shadow: none; }
+        .page-btn.nav-btn { min-width: auto; padding: 0 22px; font-weight: 700; color: var(--sn-ink); border-color: var(--sn-ink); background: var(--sn-paper-card); }
+        
+        /* --- FIXED: NAV PAGE BTN TEXT COLOR --- */
+        .page-btn.nav-btn:hover:not(:disabled) { background: var(--sn-ink); color: #ffffff; }
+        .dark-mode .page-btn.nav-btn:hover:not(:disabled), .darkmode .page-btn.nav-btn:hover:not(:disabled), body.dark .page-btn.nav-btn:hover:not(:disabled), [data-theme="dark"] .page-btn.nav-btn:hover:not(:disabled) { color: #121212; }
+        
+        .page-btn:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--sn-paper-line) !important; color: var(--sn-text-sub) !important; background: var(--sn-paper-card) !important; box-shadow: none; }
 
-        .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.4rem; color: var(--text-sub); padding-bottom: 6px; }
+        .pagination-ellipsis { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.4rem; color: var(--sn-text-sub); padding-bottom: 6px; }
 
         /* --- FAVORITES BUTTON --- */
         .fav-section-btn {
@@ -341,9 +411,9 @@
             align-items: center;
             gap: 8px;
             margin: 0;
-            background: var(--paper-card);
-            border: 1.5px solid var(--ink);
-            color: var(--ink);
+            background: var(--sn-paper-card);
+            border: 1.5px solid var(--sn-ink);
+            color: var(--sn-ink);
             padding: 10px 22px;
             border-radius: 10px;
             font-weight: 700;
@@ -352,37 +422,55 @@
             transition: all 0.25s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .fav-section-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(92,26,43,0.18); }
+        .fav-section-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.18); background: var(--sn-ink); color: #ffffff; }
+        .dark-mode .fav-section-btn:hover, .darkmode .fav-section-btn:hover, body.dark .fav-section-btn:hover, [data-theme="dark"] .fav-section-btn:hover { color: #121212; }
 
+        /* --- FIXED: ACTIVE FAV TAB STYLING --- */
+        .active-fav-tab {
+            background: var(--sn-ink) !important;
+            border-color: var(--sn-ink) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        }
+        .dark-mode .active-fav-tab, .darkmode .active-fav-tab, body.dark .active-fav-tab, [data-theme="dark"] .active-fav-tab {
+            color: #121212 !important;
+        }
+
+        /* --- FIXED: GO BACK BUTTON --- */
         .btn-go-back {
-            background: var(--ink); color: white; border: none; padding: 12px 22px; border-radius: 10px;
+            background: var(--sn-ink); color: #ffffff; border: none; padding: 12px 22px; border-radius: 10px;
             font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 15px; transition: all 0.25s ease;
-            box-shadow: 0 4px 14px rgba(92,26,43,0.25); display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 8px;
             font-family: 'Segoe UI', system-ui, sans-serif;
         }
-        .btn-go-back:hover { background: var(--ink-dark); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(92,26,43,0.35); }
+        .dark-mode .btn-go-back, .darkmode .btn-go-back, body.dark .btn-go-back, [data-theme="dark"] .btn-go-back { color: #121212; }
+        .btn-go-back:hover { background: var(--sn-ink-dark); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 
         /* --- SKELETON --- */
         .skeleton {
-            background: linear-gradient(90deg, #ece1cc 25%, #f8f1e0 50%, #ece1cc 75%);
-            background-size: 400% 100%;
+            background-color: var(--sn-paper-line);
             border-radius: 6px;
-            animation: premiumShimmer 1.2s infinite linear;
+            animation: pulse-skel 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse-skel {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
         .skeleton-text { height: 18px; width: 80%; margin-bottom: 10px; }
         .skeleton-btn { height: 44px; width: 100%; margin-top: 15px; }
-        @keyframes premiumShimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
 
         .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
         .toast {
-            background: var(--ink-dark); color: #fdf6e3; padding: 12px 22px; border-radius: 50px; margin-top: 10px;
-            opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--shadow-lg);
+            background: var(--sn-text-main); color: var(--sn-paper); padding: 12px 22px; border-radius: 50px; margin-top: 10px;
+            opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--sn-shadow-lg);
             font-size: 0.88rem; font-family: 'Segoe UI', system-ui, sans-serif;
         }
         .toast.show { opacity: 1; transform: translateY(0); white-space: nowrap; }
 
         /* empty state heading should use display font for warmth */
-        .app-main h3 { font-family: 'Georgia', serif; }
+        .app-main h3 { font-family: 'Georgia', serif; color: var(--sn-ink); }
 
         /* --- MOBILE --- */
         @media (max-width: 600px) {
@@ -401,14 +489,232 @@
         @media (prefers-reduced-motion: reduce) {
             #novel-app-wrapper * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
+
+        /* --- SURPRISE ME BUTTON --- */
+        .surprise-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--sn-gold) 0%, #e0a820 100%);
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 10px rgba(201,149,44,0.35);
+            animation: eyeCatchingTilt 3s infinite ease-in-out;
+            transform-origin: center;
+        }
+
+        @keyframes eyeCatchingTilt {
+            0%, 80%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            85% { transform: translateY(-3px) rotate(-5deg) scale(1.05); }
+            90% { transform: translateY(-3px) rotate(5deg) scale(1.05); }
+            95% { transform: translateY(-3px) rotate(-3deg) scale(1.05); }
+        }
+
+        .surprise-btn:hover {
+            animation: none;
+            transform: translateY(-2px) rotate(-1deg);
+            box-shadow: 0 6px 18px rgba(201,149,44,0.45);
+        }
+        .surprise-btn:active { transform: scale(0.97); }
+        .surprise-btn.paused { animation: none !important; }
+
+        /* --- SURPRISE MODAL OVERLAY --- */
+        .surprise-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .surprise-overlay.active { display: flex; animation: fadeInOverlay 0.25s ease; }
+
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+        .surprise-modal {
+            background: var(--sn-paper-card);
+            border-radius: 20px;
+            padding: 36px 30px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px -10px rgba(0,0,0,0.5);
+            border: 1px solid var(--sn-paper-line);
+            border-top: 5px solid var(--sn-gold);
+            position: relative;
+            animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .surprise-modal-close {
+            position: absolute;
+            top: 14px; right: 16px;
+            background: var(--sn-paper);
+            border: 1px solid var(--sn-paper-line);
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--sn-text-sub);
+            transition: 0.2s;
+        }
+        .surprise-modal-close:hover { background: var(--sn-danger); color: white; border-color: var(--sn-danger); }
+
+        .surprise-dice { font-size: 3.5rem; margin-bottom: 10px; display: block; animation: rollDice 0.5s ease; }
+        @keyframes rollDice { 0% { transform: rotate(0deg) scale(0.5); } 60% { transform: rotate(20deg) scale(1.1); } 100% { transform: rotate(0deg) scale(1); } }
+
+        .surprise-modal h3 {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.4rem;
+            color: var(--sn-ink);
+            margin: 0 0 6px;
+        }
+        .surprise-modal .novel-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--sn-gold);
+            margin-bottom: 14px;
+            display: block;
+        }
+        .surprise-modal .novel-name {
+            font-family: 'Georgia', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--sn-text-main);
+            background: var(--sn-paper);
+            border: 1px solid var(--sn-paper-line);
+            border-left: 4px solid var(--sn-gold);
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 0 0 20px;
+            line-height: 1.4;
+        }
+        .surprise-actions { display: flex; gap: 10px; }
+        .surprise-actions a, .surprise-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        /* --- FIXED: SURPRISE DOWNLOAD BUTTON --- */
+        .surprise-download { background: var(--sn-ink); color: #ffffff !important; border: none; }
+        .surprise-download:hover { background: var(--sn-ink-dark); color: #fff !important; }
+        .dark-mode .surprise-download, .darkmode .surprise-download, body.dark .surprise-download, [data-theme="dark"] .surprise-download { color: #121212 !important;}
+        
+        .surprise-again { background: var(--sn-paper); color: var(--sn-ink); border: 1.5px solid var(--sn-ink); }
+        .surprise-again:hover { background: var(--sn-ink); color: #121212; }
+
+      /* --- DOBARA BUTTON ATTENTION ANIMATION --- */
+        @keyframes popAndShake {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            10% { transform: scale(1.05) rotate(-2deg); box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: var(--sn-gold-soft); }
+            15% { transform: scale(1.05) rotate(2deg); }
+            20% { transform: scale(1.05) rotate(-2deg); }
+            25% { transform: scale(1) rotate(0deg); box-shadow: none; background: var(--sn-paper); }
+        }
+        .surprise-again.attention {
+            animation: popAndShake 3s infinite;
+            border-color: var(--sn-ink);
+            color: var(--sn-ink);
+        }
+        .surprise-again.attention:hover {
+            animation: none;
+            background: var(--sn-ink); 
+            color: #121212;
+        }
+      
+        /* --- REQUEST BANNER (empty/no results) --- */
+        .request-banner {
+            margin-top: 20px;
+            background: var(--sn-paper-card);
+            border: 1px solid var(--sn-paper-line);
+            border-left: 5px solid #3b82f6;
+            border-radius: 14px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .request-banner-text h4 {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--sn-text-main);
+            margin: 0 0 4px;
+        }
+        .request-banner-text p {
+            font-size: 0.88rem;
+            color: var(--sn-text-sub);
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .request-banner-btn {
+            background: #2563eb;
+            color: white !important;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
+            transition: 0.2s;
+            text-decoration: none;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .request-banner-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        @media (max-width: 600px) {
+            .request-banner { flex-direction: column; align-items: flex-start; }
+            .request-banner-btn { width: 100%; justify-content: center; }
+            .surprise-modal { padding: 30px 20px 24px; }
+        }
+        
+        /* Utility classes for alerts in JS */
+        .alert-restricted { background: var(--sn-alert-red-bg); border-color: var(--sn-alert-red-border); }
+        .alert-restricted h3 { color: var(--sn-alert-red-text) !important; }
+        .alert-restricted p { color: var(--sn-text-main) !important; }
+        
+        .alert-urdu { background: var(--sn-alert-blue-bg); border-color: var(--sn-alert-blue-border); }
+        .alert-urdu h3 { color: var(--sn-alert-blue-text) !important; }
+        .alert-urdu p { color: var(--sn-text-main) !important; }
+        
+        .alert-short { background: var(--sn-alert-yellow-bg); border-color: var(--sn-alert-yellow-border); }
+        .alert-short h3 { color: var(--sn-alert-yellow-text) !important; }
+        .alert-short p { color: var(--sn-text-main) !important; }
+
     </style>
 
     <div class="app-header">
         <div class="header-ornament">
-            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke-linejoin="round" stroke-width="2" stroke="#e9c878">
-                <path d="M24 10V37" stroke-width="2" stroke="#e9c878">
-            </path></path></svg>
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke="#e9c878" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M24 10V37" stroke="#e9c878" stroke-width="2"/>
+            </svg>
         </div>
         <h1>Smart Novel Bank</h1>
         <p class="subtitle">Search, discover, and download your favorite Urdu novels in PDF format.</p>
@@ -428,13 +734,16 @@
     <div class="app-main">
         <div class="controls">
             <span id="resultCount">Loading Library...</span>
-            <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button class="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me</button>
+                <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
+            </div>
         </div>
 
         <div class="grid-container" id="results"></div>
 
         <div id="recommendedSection" style="display: none; margin-top: 30px;">
-            <h3 style="color: var(--ink); font-style: italic; margin-bottom: 26px; text-align: center;">You Might Like</h3>
+            <h3 style="margin-bottom: 26px; text-align: center; font-style: italic; color: var(--sn-ink);">You Might Like</h3>
             <div class="grid-container" id="recommendedGrid"></div>
         </div>
 
@@ -443,10 +752,23 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <div class="surprise-overlay" id="surpriseOverlay" onclick="closeSurprise(event)">
+        <div class="surprise-modal" id="surpriseModal">
+            <button class="surprise-modal-close" onclick="closeSurpriseBtn()">✕</button>
+            <span class="surprise-dice" id="surpriseDice">🎲</span>
+            <span class="novel-label">Aaj ka novel</span>
+            <div class="novel-name" id="surpriseTitle">Loading...</div>
+            <div class="surprise-actions">
+                <a href="#" id="surpriseDownload" target="_blank" class="surprise-download" onclick="logSurpriseEvent('download', this.getAttribute('data-novel'))">📥 Download PDF</a>
+                <button class="surprise-again" onclick="surpriseMe(true)">🎲 Dobara</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const CONFIG = {
             apiUrl: "https://smart-novel-api.vercel.app/api/search",
-            googleScript: "https://script.google.com/macros/s/AKfycbyzThZAU6jwIl7PeYlJL3Swu61b8TCS9F7gHwNGoVh7hEXPd9zBRGhb7tUwmWDwC-Wj/exec",
+            googleScript: "https://script.google.com/macros/s/AKfycbz82rnYUtQdRWjYgKaB3TGRwKmvEQOrd9Pp33JhSfCuD4ruPsgkNvlmT72FqzTbA3KX/exec",
             perPage: 21
         };
 
@@ -462,7 +784,8 @@
             favorites: JSON.parse(localStorage.getItem("favorites") || "[]"), 
             showFavorites: false,
             lastLog: "",
-            randomOffset: Math.floor(Math.random() * 75000) 
+            randomOffset: Math.floor(Math.random() * 75000),
+            seenSurprises: JSON.parse(localStorage.getItem("seenSurprises") || "[]") 
         };
 
         // --- TYPEWRITER PLACEHOLDER LOGIC ---
@@ -668,12 +991,13 @@
                     document.getElementById("resultCount").textContent = "🚫 Restricted";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fbe2dd; border-radius: 14px; border: 1px solid #e0a394;">
+                    <div class="alert-restricted" style="grid-column: 1/-1; text-align: center; padding: 40px; border-radius: 14px; border-width: 1px; border-style: solid;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #8c2a1e; font-weight: 700; font-style: italic;">Search Restricted</h3><br>
-                        <p style="color: #7f1d1d; font-size: 1.05rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
-                        <p style="color: #991b1b; font-size: 0.92rem;">Please search for decent Urdu novels only.</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #b3382c;">Clear Search</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; font-weight: 700; font-style: italic;">Search Restricted</h3><br>
+                        <p style="font-size: 1.05rem; margin-bottom: 8px;">We maintain a <strong>Clean & Family-Friendly</strong> environment.</p>
+                        <p style="font-size: 0.92rem;">Please search for decent Urdu novels only.</p>
+                        <br>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: var(--sn-danger); color: white; border:none;">Clear Search</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -686,12 +1010,12 @@
                     document.getElementById("resultCount").textContent = "🔤 English Required";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #eef2fb; border-radius: 14px; border: 1px solid #a9bce4;">
+                    <div class="alert-urdu" style="grid-column: 1/-1; text-align: center; padding: 40px; border-radius: 14px; border-width: 1px; border-style: solid;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">⌨️</div><br>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #2b3f73; font-weight: 700; font-style: italic;">Please Search in English</h3><br>
-                        <p style="color: #2b3f73; font-size: 1.05rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
-                        <p style="color: #344a82; font-size: 0.92rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #2b3f73;">Try Again</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; font-weight: 700; font-style: italic;">Please Search in English</h3><br>
+                        <p style="font-size: 1.05rem; margin-bottom: 8px;">We only support <strong>English / Roman Urdu</strong> spellings.</p>
+                        <p style="font-size: 0.92rem; margin-bottom: 20px;">(Example: Type <strong>"Jannat"</strong> instead of <strong>"جنت"</strong>)</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: var(--sn-ink); color: #ffffff; border:none;">Try Again</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -703,12 +1027,12 @@
                     document.getElementById("resultCount").textContent = "? Unclear Search";
                     document.getElementById("resultCount").style.visibility = "visible";
                     grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f7e9c9; border-radius: 14px; border: 1px solid #c9952c;">
+                    <div class="alert-short" style="grid-column: 1/-1; text-align: center; padding: 40px; border-radius: 14px; border-width: 1px; border-style: solid;">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🤔</div><br>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: #7a5814; font-weight: 700; font-style: italic;">Search Too Short</h3>
-                        <p style="color: #6b4d11; font-size: 1.05rem; margin-bottom: 8px;">We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".</p>
-                        <p style="color: #6b4d11; font-size: 0.92rem; margin-bottom: 20px;">Please type at least <strong>3 characters</strong> (e.g., "Namal").</p>
-                        <button class="btn-go-back" onclick="clearSearch()" style="background: #b07f1d;">Try Again</button>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; font-weight: 700; font-style: italic;">Search Too Short</h3>
+                        <p style="font-size: 1.05rem; margin-bottom: 8px;">We can't find novels with just "<strong>${escapeHTML(queryRaw)}</strong>".</p>
+                        <p style="font-size: 0.92rem; margin-bottom: 20px;">Please type at least <strong>3 characters</strong> (e.g., "Namal").</p>
+                        <button class="btn-go-back" onclick="clearSearch()" style="background: var(--sn-gold); color: #121212; border:none;">Try Again</button>
                     </div>`;
                     document.getElementById("pagination").innerHTML = "";
                     document.getElementById("recommendedSection").style.display = "none";
@@ -754,8 +1078,8 @@
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                         <div style="font-size: 3.5rem; margin-bottom: 15px; opacity: 0.5; filter: grayscale(100%);">🤍</div>
-                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; color: var(--text-main); font-weight: 700; font-style: italic;">No Favorites Yet</h3>
-                        <p style="color: var(--text-sub); font-size: 1.0rem; font-weight: 500; margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
+                        <h3 style="font-size: 1.6rem; margin-bottom: 10px; font-weight: 700; font-style: italic;">No Favorites Yet</h3>
+                        <p style="color: var(--sn-text-sub); font-size: 1.0rem; font-weight: 500; margin-bottom: 20px;">Aap ne abhi tak koi novel favorite mein add nahi kiya.</p>
                     </div>`;
                     showRecommendations(); 
                 } else {
@@ -763,9 +1087,18 @@
                     resultCountSpan.textContent = "Found Novels: 0";
                     grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <h3 style="font-size: 1.5rem; margin-bottom: 10px; font-style: italic; color: var(--ink);">No novels found 😕</h3>
-                        <p style="color: var(--text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px; font-style: italic;">No novels found 😕</h3>
+                        <p style="color: var(--sn-text-sub); margin-bottom: 20px;">Check spelling or try using voice search.</p>
                         <button class="btn-go-back" onclick="clearSearch()"><span>⬅</span> Go Back to Library</button>
+                    </div>
+                    <div style="grid-column: 1/-1;">
+                        <div class="request-banner">
+                            <div class="request-banner-text">
+                                <h4>Novel nahi mila? 📬</h4>
+                                <p>Humein batao — hum is novel ko add karne ki koshish karenge!</p>
+                            </div>
+                            <a href="https://forms.gle/Zj7D6HYBBu4WgPhk6" target="_blank" class="request-banner-btn">Request Novel 📨</a>
+                        </div>
                     </div>`;
                     showRecommendations(); 
                 }
@@ -875,7 +1208,7 @@
                     try {
                         const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         const regex = new RegExp(`(${safeQuery})`, 'gi');
-                        highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--ink); font-weight: 800;">$1</span>');
+                        highlightedTitle = safeTitle.replace(regex, '<span style="color: var(--sn-ink); font-weight: 800;">$1</span>');
                     } catch(e) {}
 
                     return `<div class="suggestion-item" onclick="selectSuggestion('${jsSafeTitle}')">
@@ -912,17 +1245,11 @@
             
             if (state.showFavorites) { 
                 btn.innerHTML = "<span>⬅</span> Back to Library"; 
-                btn.style.background = "var(--ink)"; 
-                btn.style.borderColor = "var(--ink)";
-                btn.style.color = "white"; 
-                btn.style.boxShadow = "0 4px 15px rgba(92,26,43,0.3)";
+                btn.classList.add("active-fav-tab");
                 renderResults();
             } else { 
                 btn.innerHTML = "Show Favorites ❤️"; 
-                btn.style.background = "var(--paper-card)"; 
-                btn.style.borderColor = "var(--ink)";
-                btn.style.color = "var(--ink)"; 
-                btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+                btn.classList.remove("active-fav-tab");
                 fetchData(document.getElementById("searchBox").value.trim());
             }
         }
@@ -980,14 +1307,94 @@
             
             const btn = document.getElementById("favToggle");
             btn.innerHTML = "Show Favorites ❤️"; 
-            btn.style.background = "var(--paper-card)"; 
-            btn.style.borderColor = "var(--ink)";
-            btn.style.color = "var(--ink)"; 
-            btn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+            btn.classList.remove("active-fav-tab");
             
             state.currentPage = 1; 
             state.randomOffset = Math.floor(Math.random() * 75000); 
             fetchData(); 
+        }
+
+        // --- SURPRISE ME (UPDATED FOR POST METHOD AND 5000+ NOVELS LIMIT) ---
+        async function surpriseMe(isReroll = false) {
+            const overlay = document.getElementById("surpriseOverlay");
+            const title = document.getElementById("surpriseTitle");
+            const dice = document.getElementById("surpriseDice");
+            const dlBtn = document.getElementById("surpriseDownload");
+            const againBtn = document.querySelector('.surprise-again');
+            document.querySelector('.surprise-btn').classList.add('paused');
+            
+            if(againBtn) againBtn.classList.remove('attention');
+
+            overlay.classList.add("active");
+            title.textContent = "Dhundh Raha Hun ...";
+            dlBtn.href = "#";
+            dlBtn.style.pointerEvents = "none";
+            dlBtn.style.opacity = "0.5";
+
+            // Animate dice
+            dice.style.animation = "none";
+            void dice.offsetWidth;
+            dice.style.animation = "rollDice 0.5s ease";
+
+            try {
+                const res = await fetch(CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ featured: true, seen: state.seenSurprises })
+                });
+
+                const result = await res.json();
+                const novels = result.data || [];
+                
+                if (novels.length === 0) { 
+                    title.textContent = "Koi featured novel nahi mila, dobara try karein."; 
+                    return; 
+                }
+                
+                const pick = novels[0]; 
+                title.textContent = pick.Titles;
+                logSurpriseEvent(isReroll ? "reroll" : "click", pick.Titles);
+                
+                const safeLink = (pick.Links && /^https?:\/\//i.test(pick.Links)) ? pick.Links : '#';
+                dlBtn.href = safeLink;
+                dlBtn.style.pointerEvents = "auto";
+                dlBtn.style.opacity = "1";
+                dlBtn.setAttribute("data-novel", pick.Titles);
+
+                setTimeout(() => {
+                    if (overlay.classList.contains("active") && againBtn) {
+                        againBtn.classList.add('attention');
+                    }
+                }, 2500);
+
+                if (result.reset) {
+                    state.seenSurprises = [];
+                }
+
+                if (!state.seenSurprises.includes(pick.Titles)) {
+                    state.seenSurprises.push(pick.Titles);
+                }
+                
+                if (state.seenSurprises.length >= 5000) {
+                    state.seenSurprises = [];
+                    localStorage.removeItem("seenSurprises");
+                    showToast("Surprise history reset ho gayi hai!");
+                } else {
+                    localStorage.setItem("seenSurprises", JSON.stringify(state.seenSurprises));
+                }
+                
+            } catch(e) {
+                console.error("Surprise Me Error:", e);
+                title.textContent = "Error aa gaya, dobara try karein.";
+            }
+        }
+        function closeSurprise(e) {
+            if (e.target === document.getElementById("surpriseOverlay")) {
+                document.getElementById("surpriseOverlay").classList.remove("active");
+            }
+        }
+        function closeSurpriseBtn() {
+            document.getElementById("surpriseOverlay").classList.remove("active");
         }
 
         function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; }
@@ -1047,22 +1454,37 @@
             return id;
         }
 
-  function logSearch(q, n) { 
-    const userId = getUserId();
-    const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
-    
-    const resultStatus = n ? "Yes" : "No";
+        function logSearch(q, n) { 
+            const userId = getUserId();
+            const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+            
+            const resultStatus = n ? "Yes" : "No";
 
-    const params = new URLSearchParams({ 
-        search: q, 
-        timestamp: new Date().toISOString(), 
-        noResults: resultStatus,
-        device: deviceType, 
-        userId: userId 
-    });
-    
-    fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
-}
+            const params = new URLSearchParams({ 
+                search: q, 
+                timestamp: new Date().toISOString(), 
+                noResults: resultStatus,
+                device: deviceType, 
+                userId: userId 
+            });
+            
+            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
+        }
+      
+      function logSurpriseEvent(eventType, novelTitle) {
+            const userId = getUserId();
+            const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+            const params = new URLSearchParams({
+                sheet: "Surprise",
+                eventType: eventType,
+                novel: novelTitle || "",
+                timestamp: new Date().toISOString(),
+                device: deviceType,
+                userId: userId
+            });
+            fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {});
+        }
+      
     </script>
 </div>
 </body>
