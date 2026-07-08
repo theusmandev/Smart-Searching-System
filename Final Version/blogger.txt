@@ -394,7 +394,7 @@
             #novel-app-wrapper * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
 
-        /* --- SURPRISE ME BUTTON --- */
+/* --- SURPRISE ME BUTTON --- */
         .surprise-btn {
             display: inline-flex;
             align-items: center;
@@ -409,13 +409,27 @@
             cursor: pointer;
             transition: all 0.25s ease;
             box-shadow: 0 3px 10px rgba(201,149,44,0.35);
+            /* New Attention Animation */
+            animation: eyeCatchingTilt 3s infinite ease-in-out;
+            transform-origin: center;
         }
+
+        /* Tilt & Wobble Animation Keyframes */
+        @keyframes eyeCatchingTilt {
+            0%, 80%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            85% { transform: translateY(-3px) rotate(-5deg) scale(1.05); }
+            90% { transform: translateY(-3px) rotate(5deg) scale(1.05); }
+            95% { transform: translateY(-3px) rotate(-3deg) scale(1.05); }
+        }
+
         .surprise-btn:hover {
+            /* Stop animation on hover so it's easy to click */
+            animation: none;
             transform: translateY(-2px) rotate(-1deg);
             box-shadow: 0 6px 18px rgba(201,149,44,0.45);
         }
         .surprise-btn:active { transform: scale(0.97); }
-
+    .surprise-btn.paused { animation: none !important; }
         /* --- SURPRISE MODAL OVERLAY --- */
         .surprise-overlay {
             display: none;
@@ -513,6 +527,27 @@
         .surprise-again { background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); }
         .surprise-again:hover { background: var(--ink); color: white; }
 
+      /* --- DOBARA BUTTON ATTENTION ANIMATION --- */
+        @keyframes popAndShake {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            10% { transform: scale(1.05) rotate(-2deg); box-shadow: 0 4px 12px rgba(92,26,43,0.15); background: #fbf3e2; }
+            15% { transform: scale(1.05) rotate(2deg); }
+            20% { transform: scale(1.05) rotate(-2deg); }
+            25% { transform: scale(1) rotate(0deg); box-shadow: none; background: var(--paper); }
+        }
+        .surprise-again.attention {
+            animation: popAndShake 3s infinite;
+            border-color: var(--ink);
+            color: var(--ink);
+        }
+        .surprise-again.attention:hover {
+            animation: none;
+            background: var(--ink); 
+            color: white;
+        }
+      
+      
+      
         /* --- REQUEST BANNER (empty/no results) --- */
         .request-banner {
             margin-top: 20px;
@@ -566,13 +601,13 @@
 
     <div class="app-header">
         <div class="header-ornament">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke="#e9c878" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M24 10V37" stroke="#e9c878" stroke-width="2"/>
-            </svg>
+            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 10C19 7 12 7 7 9V36C12 34 19 34 24 37C29 34 36 34 41 36V9C36 7 29 7 24 10Z" stroke-linejoin="round" stroke-width="2" stroke="#e9c878">
+                <path d="M24 10V37" stroke-width="2" stroke="#e9c878">
+            </path></path></svg>
         </div>
         <h1>Smart Novel Bank</h1>
-        <p class="subtitle">Search, discover, aur apne pasandeeda Urdu novels PDF mein download karein.</p>
+        <p class="subtitle">Search, discover, and download your favorite Urdu novels in PDF format.</p>
         <div class="header-divider"></div>
     </div>
 
@@ -589,7 +624,7 @@
     <div class="app-main">
         <div class="controls">
             <span id="resultCount">Loading Library...</span>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div style="align-items: center; display: flex; flex-wrap: wrap; gap: 10px;">
                 <button class="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me</button>
                 <button class="fav-section-btn" id="favToggle" onclick="toggleFavorites()">Show Favorites ❤️</button>
             </div>
@@ -598,7 +633,7 @@
         <div class="grid-container" id="results"></div>
 
         <div id="recommendedSection" style="display: none; margin-top: 30px;">
-            <h3 style="margin-bottom: 26px; text-align: center; font-style: italic; color: var(--ink);">You Might Like</h3>
+            <h3 style="color: var(--ink); font-style: italic; margin-bottom: 26px; text-align: center;">You Might Like</h3>
             <div class="grid-container" id="recommendedGrid"></div>
         </div>
 
@@ -614,8 +649,8 @@
             <span class="novel-label">Aaj ka novel</span>
             <div class="novel-name" id="surpriseTitle">Loading...</div>
             <div class="surprise-actions">
-                <a href="#" id="surpriseDownload" target="_blank" class="surprise-download">📥 Download PDF</a>
-                <button class="surprise-again" onclick="surpriseMe()">🎲 Dobara</button>
+                <a class="surprise-download" href="#" id="surpriseDownload" onclick="logSurpriseEvent('download', this.getAttribute('data-novel'))" target="_blank">📥 Download PDF</a>
+                <button class="surprise-again" onclick="surpriseMe(true)">🎲 Dobara</button>
             </div>
         </div>
     </div>
@@ -623,7 +658,7 @@
     <script>
         const CONFIG = {
             apiUrl: "https://smart-novel-api.vercel.app/api/search",
-            googleScript: "https://script.google.com/macros/s/AKfycbyzThZAU6jwIl7PeYlJL3Swu61b8TCS9F7gHwNGoVh7hEXPd9zBRGhb7tUwmWDwC-Wj/exec",
+            googleScript: "https://script.google.com/macros/s/AKfycbz82rnYUtQdRWjYgKaB3TGRwKmvEQOrd9Pp33JhSfCuD4ruPsgkNvlmT72FqzTbA3KX/exec",
             perPage: 21
         };
 
@@ -951,7 +986,7 @@
                                 <h4>Novel nahi mila? 📬</h4>
                                 <p>Humein batao — hum is novel ko add karne ki koshish karenge!</p>
                             </div>
-                            <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="request-banner-btn">Request Novel 📨</a>
+                            <a href="https://forms.gle/Zj7D6HYBBu4WgPhk6" target="_blank" class="request-banner-btn">Request Novel 📨</a>
                         </div>
                     </div>`;
                     showRecommendations(); 
@@ -1178,14 +1213,19 @@
         }
 
         // --- SURPRISE ME (UPDATED FOR POST METHOD AND 5000+ NOVELS LIMIT) ---
-        async function surpriseMe() {
+// --- SURPRISE ME (UPDATED FOR POST METHOD AND 5000+ NOVELS LIMIT) ---
+        async function surpriseMe(isReroll = false) {
             const overlay = document.getElementById("surpriseOverlay");
             const title = document.getElementById("surpriseTitle");
             const dice = document.getElementById("surpriseDice");
             const dlBtn = document.getElementById("surpriseDownload");
+            const againBtn = document.querySelector('.surprise-again'); // Naya code
+            document.querySelector('.surprise-btn').classList.add('paused');
+            // Purani animation hatayen jab dobara click ho
+            if(againBtn) againBtn.classList.remove('attention');
 
             overlay.classList.add("active");
-            title.textContent = "Dhundh raha hoon...";
+            title.textContent = "Dhundh Raha Hun ...";
             dlBtn.href = "#";
             dlBtn.style.pointerEvents = "none";
             dlBtn.style.opacity = "0.5";
@@ -1213,11 +1253,20 @@
                 
                 const pick = novels[0]; 
                 title.textContent = pick.Titles;
+                logSurpriseEvent(isReroll ? "reroll" : "click", pick.Titles);
                 
                 const safeLink = (pick.Links && /^https?:\/\//i.test(pick.Links)) ? pick.Links : '#';
                 dlBtn.href = safeLink;
                 dlBtn.style.pointerEvents = "auto";
                 dlBtn.style.opacity = "1";
+                dlBtn.setAttribute("data-novel", pick.Titles);
+
+                // Naya code: Result aane ke 2.5 seconds baad "Dobara" button par animation lagayen
+                setTimeout(() => {
+                    if (overlay.classList.contains("active") && againBtn) {
+                        againBtn.classList.add('attention');
+                    }
+                }, 2500);
 
                 // Agar API ne list reset kar di hai, toh browser memory bhi clear kar do
                 if (result.reset) {
@@ -1243,7 +1292,6 @@
                 title.textContent = "Error aa gaya, dobara try karein.";
             }
         }
-
         function closeSurprise(e) {
             if (e.target === document.getElementById("surpriseOverlay")) {
                 document.getElementById("surpriseOverlay").classList.remove("active");
@@ -1326,5 +1374,22 @@
             
             fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {}); 
         }
+      
+      function logSurpriseEvent(eventType, novelTitle) {
+    const userId = getUserId();
+    const deviceType = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+    const params = new URLSearchParams({
+        sheet: "Surprise",
+        eventType: eventType,
+        novel: novelTitle || "",
+        timestamp: new Date().toISOString(),
+        device: deviceType,
+        userId: userId
+    });
+    fetch(CONFIG.googleScript, { method: 'POST', body: params }).catch(e => {});
+}
+      
+      
+      
     </script>
 </div>
